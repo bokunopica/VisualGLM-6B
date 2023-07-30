@@ -1,5 +1,5 @@
 #! /bin/bash
-NUM_WORKERS=1
+NUM_WORKERS=3
 NUM_GPUS_PER_WORKER=8
 MP_SIZE=1
 
@@ -46,16 +46,15 @@ gpt_options=" \
        --eval-batch-size 8 \
        --zero-stage 1 \
        --lr 0.0001 \
-       --batch-size 16 \
-       --gradient-accumulation-steps 4 \
+       --batch-size 8 \
        --skip-init \
        --fp16 \
-       --use_qlora
+       --use_ptuning
 "
 
               
 
-run_cmd="${OPTIONS_DEVICE} ${OPTIONS_NCCL} ${OPTIONS_SAT} deepspeed --master_port 16666 --include localhost:0 --hostfile ${HOST_FILE_PATH} finetune_visualglm.py ${gpt_options}"
+run_cmd="${OPTIONS_DEVICE} ${OPTIONS_NCCL} ${OPTIONS_SAT} deepspeed --master_port 16666 --hostfile ${HOST_FILE_PATH} finetune_visualglm.py ${gpt_options}"
 echo ${run_cmd}
 eval ${run_cmd}
 

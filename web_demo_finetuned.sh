@@ -1,0 +1,1 @@
+python web_demo_finetuned.py --ckpt_path '/home/qianq/mycodes/VisualGLM-6B/checkpoints/finetune-visualglm-ptuning-1000'

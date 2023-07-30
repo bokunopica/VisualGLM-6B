@@ -7,6 +7,7 @@ from sat.training.deepspeed_training import training_main
 from model import VisualGLMModel
 from sat.model.finetune import PTuningV2Mixin
 from sat.model.finetune.lora2 import LoraMixin
+from sat.model.finetune import AdapterMixin
 
 class FineTuneVisualGLMModel(VisualGLMModel):
     def __init__(self, args, transformer=None, parallel_output=True, **kw_args):
@@ -19,7 +20,8 @@ class FineTuneVisualGLMModel(VisualGLMModel):
         elif args.use_qlora:
             self.add_mixin("lora", LoraMixin(args.num_layers, args.lora_rank, layer_range=args.layer_range, qlora=True), reinit=True)
         elif args.use_adapter:
-            # TODO add adapter way to finetune
+            #TODO add adapter way to finetune
+            self.add_mixin("")
             pass
         self.args = args
         
