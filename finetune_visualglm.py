@@ -1,11 +1,17 @@
 import os
 import torch
 import argparse
+import json
 
+
+from PIL import Image
+from tqdm import trange
 from torch import nn
+from torch.utils.data import Dataset
 from sat import mpu, get_args, get_tokenizer
 from sat.training.deepspeed_training import training_main
 from model import VisualGLMModel
+from model.blip2 import BlipImageEvalProcessor
 from sat.model.finetune import PTuningV2Mixin
 from sat.model.finetune.lora2 import LoraMixin
 from sat.model.finetune import AdapterMixin
@@ -109,6 +115,7 @@ class FineTuneVisualGLMModel(VisualGLMModel):
         group.add_argument("--layer_range", nargs="+", type=int, default=None)
         group.add_argument("--use_adapter", action="store_true")
         group.add_argument("--adapter_hidden", type=int, default=128)
+        group.add_argument("--adapter_num_layers", type=int, default=28)
         return super().add_model_specific_args(parser)
 
     def disable_untrainable_params(self):
@@ -186,14 +193,17 @@ def forward_step(data_iterator, model, args, timers):
     loss = loss.to(dtype)
     return loss, {"loss": loss}
 
+def singleton(cls):
+    instances = {}
 
-from model.blip2 import BlipImageEvalProcessor
-from torch.utils.data import Dataset
-import json
-from PIL import Image
-from tqdm import trange
+    def _singleton(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
 
+    return _singleton
 
+@singleton
 class FewShotDataset(Dataset):
     def __init__(self, path, processor, tokenizer, args):
         max_seq_length = args.max_source_length + args.max_target_length
@@ -243,16 +253,8 @@ class FewShotDataset(Dataset):
             "pre_image": self.pre_image,
         }
 
-
-# def create_dataset_function(path, args):
-#     tokenizer = get_tokenizer(args)
-#     image_processor = BlipImageEvalProcessor(224)
-
-#     dataset = FewShotDataset(path, image_processor, tokenizer, args)
-#     return dataset
-
-
-class XrayDataset(Dataset):
+@singleton
+class XrayDataset(Dataset):    
     def __init__(self, path, processor, tokenizer, args):
         max_seq_length = args.max_source_length + args.max_target_length
         with open(path, "r", encoding="utf-8") as f:
@@ -306,11 +308,9 @@ class XrayDataset(Dataset):
             "pre_image": self.pre_image,
         }
 
-
 def create_dataset_function(path, args):
     tokenizer = get_tokenizer(args)
     image_processor = BlipImageEvalProcessor(224)
-
     dataset = XrayDataset(path, image_processor, tokenizer, args)
     return dataset
 
