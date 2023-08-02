@@ -31,7 +31,7 @@ def main(file_path, save_path):
         json.dump(data_info, f1)
 
 if __name__ == "__main__":
-    file_path = "/home/qianq/data/OpenI-zh/images/openi-zh.json"
-    save_path = "/home/qianq/data/OpenI-zh/images/openi-zh-prompt.json"
+    file_path = "/home/qianq/data/OpenI-zh-resize-384/images/openi-zh.json"
+    save_path = "/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
     main(file_path, save_path)
     
