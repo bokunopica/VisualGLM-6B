@@ -138,7 +138,7 @@ class FineTuneVisualGLMModel(VisualGLMModel):
                 flag = True
             elif self.args.use_freeze:
                 for unfreeze_layer in unfreeze_layers:
-                    if n.startswith(f"transformer.layers.{unfreeze_layer}"):
+                    if n.startswith(f"transformer.layers.{unfreeze_layer}."):
                         flag = True
                         break
             else:
