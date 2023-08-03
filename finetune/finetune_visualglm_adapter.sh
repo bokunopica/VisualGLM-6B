@@ -29,7 +29,7 @@ gpt_options=" \
        --experiment-name finetune-$MODEL_TYPE \
        --model-parallel-size ${MP_SIZE} \
        --mode finetune \
-       --train-iters 50000 \
+       --train-iters 1000 \
        --resume-dataloader \
        $MODEL_ARGS \
        --train-data ${train_data} \
@@ -37,7 +37,7 @@ gpt_options=" \
        --distributed-backend nccl \
        --lr-decay-style cosine \
        --checkpoint-activations \
-       --save-interval 50000 \
+       --save-interval 1000 \
        --eval-interval 50 \
        --save "./checkpoints" \
        --split 1 \

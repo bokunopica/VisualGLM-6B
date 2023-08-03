@@ -13,7 +13,7 @@ MODEL_ARGS="--max_source_length 64 \
     --layer_range 0 14 \
     --pre_seq_len 4"
 
-OPTIONS_DEVICE="CUDA_VISIBLE_DEVICES=0,1,2"
+OPTIONS_DEVICE="CUDA_VISIBLE_DEVICES=1,2,3"
 # OPTIONS_SAT="SAT_HOME=$1" #"SAT_HOME=/raid/dm/sat_models"
 OPTIONS_NCCL="NCCL_DEBUG=info NCCL_IB_DISABLE=0 NCCL_NET_GDR_LEVEL=2"
 HOST_FILE_PATH="hostfile"
@@ -21,8 +21,9 @@ HOST_FILE_PATH="hostfile_single"
 
 # train_data="./fewshot-data/dataset.json"
 # eval_data="./fewshot-data/dataset.json"
-train_data="/home/qianq/data/OpenI-zh/images/openi-zh-prompt.json"
-eval_data="/home/qianq/data/OpenI-zh/images/openi-zh-prompt.json"
+train_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
+eval_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
+
 
 
 gpt_options=" \
@@ -45,11 +46,12 @@ gpt_options=" \
        --eval-iters 10 \
        --eval-batch-size 4 \
        --zero-stage 1 \
-       --lr 1e-3 \
+       --lr 0.0001 \
        --batch-size 4 \
        --skip-init \
        --fp16 \
-       --use_freeze
+       --use_freeze \
+       --unfreeze_layers 0
 "
 
               

@@ -116,6 +116,8 @@ class FineTuneVisualGLMModel(VisualGLMModel):
         group.add_argument("--use_adapter", action="store_true")
         group.add_argument("--adapter_hidden", type=int, default=128)
         group.add_argument("--adapter_num_layers", type=int, default=28)
+        group.add_argument("--use_freeze", action="store_true")
+        group.add_argument("--unfreeze_layers", type=str, default="")
         return super().add_model_specific_args(parser)
 
     def disable_untrainable_params(self):
@@ -124,14 +126,21 @@ class FineTuneVisualGLMModel(VisualGLMModel):
             enable.extend(["ptuning"])
         if self.args.use_lora or self.args.use_qlora:
             enable.extend(["matrix_A", "matrix_B"])
-        if self.args.use_adapter:
-            enable.extend
+        if self.args.use_freeze:
+            unfreeze_layers = args.unfreeze_layers.split(',')
+        else:
+            unfreeze_layers = []
+        print('------------unfreeze_layer--------------')
         for n, p in self.named_parameters():
-            print(n)
             flag = False
             # adapter unfreeze
             if self.args.use_adapter and n.startswith("mixins.adapter"):
                 flag = True
+            elif self.args.use_freeze:
+                for unfreeze_layer in unfreeze_layers:
+                    if n.startswith(f"transformer.layers.{unfreeze_layer}"):
+                        flag = True
+                        break
             else:
                 for e in enable:
                     if e.lower() in n.lower():
@@ -141,6 +150,8 @@ class FineTuneVisualGLMModel(VisualGLMModel):
                 p.requires_grad_(False)
             else:
                 print(n)
+        print('------------unfreeze_layer--------------')
+
 
 
 def get_batch(data_iterator, args, timers):
