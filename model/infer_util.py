@@ -33,11 +33,14 @@ def is_chinese(text):
     return zh_pattern.search(text)
 
 def generate_input(input_text, input_image_prompt, history=[], input_para=None, image_is_encoded=True):
-    if not image_is_encoded:
-        image = input_image_prompt
+    if input_image_prompt is None:
+        image = None
     else:
-        decoded_image = base64.b64decode(input_image_prompt)
-        image = Image.open(BytesIO(decoded_image))
+        if not image_is_encoded:
+            image = input_image_prompt
+        else:
+            decoded_image = base64.b64decode(input_image_prompt)
+            image = Image.open(BytesIO(decoded_image))
 
     input_data = {'input_query': input_text, 'input_image': image, 'history': history, 'gen_kwargs': input_para}
     return input_data
