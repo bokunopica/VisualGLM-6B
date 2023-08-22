@@ -345,7 +345,7 @@ if __name__ == "__main__":
     )
     for sub_model_name in model.mixins:
         print(sub_model_name)
-        if sub_model_name == "adapter":
+        if sub_model_name in ["adapter", "ptuning", "lora"]:
             continue
         model.mixins[sub_model_name].load_state_dict(
             torch.load(
