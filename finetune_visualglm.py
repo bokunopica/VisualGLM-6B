@@ -127,7 +127,7 @@ class FineTuneVisualGLMModel(VisualGLMModel):
         if self.args.use_lora or self.args.use_qlora:
             enable.extend(["matrix_A", "matrix_B"])
         if self.args.use_freeze:
-            unfreeze_layers = args.unfreeze_layers.split(',')
+            unfreeze_layers = self.args.unfreeze_layers.split(',')
         else:
             unfreeze_layers = []
         print('------------unfreeze_layer--------------')
