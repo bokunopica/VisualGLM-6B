@@ -140,6 +140,7 @@ def main(args):
                     input_text = gr.Textbox(
                         label="Input Text",
                         placeholder="Please enter text prompt below and press ENTER.",
+                        value="通过这张胸部X光影像可以诊断出什么？"
                     )
                     with gr.Row():
                         run_button = gr.Button("Generate")

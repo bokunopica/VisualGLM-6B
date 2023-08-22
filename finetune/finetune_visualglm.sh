@@ -20,8 +20,8 @@ HOST_FILE_PATH="hostfile_single"
 
 # train_data="./fewshot-data/dataset.json"
 # eval_data="./fewshot-data/dataset.json"
-train_data="/home/qianq/data/OpenI-zh/images/openi-zh-prompt.json"
-eval_data="/home/qianq/data/OpenI-zh/images/openi-zh-prompt.json"
+train_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
+eval_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
 
 
 gpt_options=" \
