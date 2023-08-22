@@ -1,5 +1,5 @@
 #! /bin/bash
-NUM_WORKERS=1
+NUM_WORKERS=2
 NUM_GPUS_PER_WORKER=4
 MP_SIZE=1
 
@@ -13,7 +13,7 @@ MODEL_ARGS="--max_source_length 64 \
     --layer_range 0 14 \
     --pre_seq_len 4"
 
-OPTIONS_DEVICE="CUDA_VISIBLE_DEVICES=1,2,3"
+OPTIONS_DEVICE="CUDA_VISIBLE_DEVICES=0,1"
 # OPTIONS_SAT="SAT_HOME=$1" #"SAT_HOME=/raid/dm/sat_models"
 OPTIONS_NCCL="NCCL_DEBUG=info NCCL_IB_DISABLE=0 NCCL_NET_GDR_LEVEL=2"
 HOST_FILE_PATH="hostfile"
@@ -29,7 +29,7 @@ gpt_options=" \
        --experiment-name finetune-$MODEL_TYPE \
        --model-parallel-size ${MP_SIZE} \
        --mode finetune \
-       --train-iters 1000 \
+       --train-iters 3000 \
        --resume-dataloader \
        $MODEL_ARGS \
        --train-data ${train_data} \
@@ -44,7 +44,7 @@ gpt_options=" \
        --eval-iters 10 \
        --eval-batch-size 4 \
        --zero-stage 1 \
-       --lr 1e-3 \
+       --lr 0.0001 \
        --batch-size 4 \
        --skip-init \
        --fp16 \
