@@ -119,11 +119,12 @@ def main(args):
     model, model_args = FineTuneVisualGLMModel.from_pretrained(
         args.ckpt_path,
         args=argparse.Namespace(
-        fp16=True,
-        skip_init=True,
-        use_gpu_initialization=True if (torch.cuda.is_available() and args.quant is None) else False,
-        device='cuda' if (torch.cuda.is_available() and args.quant is None) else 'cpu',
-    ))
+            fp16=True,
+            skip_init=True,
+            use_gpu_initialization=True if (torch.cuda.is_available() and args.quant is None) else False,
+            device='cuda' if (torch.cuda.is_available() and args.quant is None) else 'cpu',
+        )
+    )
     model = model.eval()
 
     if args.quant:
