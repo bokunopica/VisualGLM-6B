@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import random
 import gradio as gr
 from PIL import Image
 import os
@@ -11,17 +12,22 @@ from model import (
     generate_input,
     chat,
 )
+from tqdm import trange
 import torch
 from finetune_visualglm import FineTuneVisualGLMModel
 from sat.quantization.kernels import quantize
 from sat.model.mixins import CachedAutoregressiveMixin
 from transformers import AutoTokenizer
 
-def extract_bool_from_answer() -> bool:
+def extract_bool_from_answer(answer) -> bool:
     # TODO extract
-    return True
+    if answer.startswith('True'):
+        return 1
+    elif answer.startswith('False'):
+        return 0
+    return -1
 
-def get_result() -> bool:
+def get_result(image_path) -> bool:
     temperature = 1e-5
     max_length = 512
     top_p = 0.4
@@ -29,8 +35,8 @@ def get_result() -> bool:
     with torch.no_grad():
         # TODO 多轮对话获得bool结果
         history = []
-        input_text = ""
-        input_image = Image.open("") # direction
+        input_text = "通过该x光片是否能诊断出肺炎？请回答True or False:"
+        input_image = Image.open(image_path) # direction
         answer, _history, _torch_image = chat(
             None,
             model,
@@ -45,9 +51,10 @@ def get_result() -> bool:
             english=False,
         )
         result = extract_bool_from_answer(answer)
-    return result # 返回True or False 布尔类型
+    return result, answer # result int, answer str
 
 def main(args):
+    random.seed(110)
     # model initialize
     global model, tokenizer
     model, model_args = FineTuneVisualGLMModel.from_pretrained(
@@ -71,30 +78,33 @@ def main(args):
     base_dir = "/home/qianq/data/mimic-pa-512/mimic-pa-512/valid"
     label_df = pd.read_csv(f'{base_dir}/metadata.csv')
     label_df = label_df[['file_name', 'Pneumonia']]
-    file_name_list = os.listdir(base_dir)
+    file_name_list = os.listdir(base_dir)[:-2]
+    # random.shuffle(file_name_list)
 
     result_list = []
-
-    for i in range(len(file_name_list)):
+    for i in trange(len(file_name_list)):
         file_name = file_name_list[i]
+        image_path = f"{base_dir}/{file_name}"
+
         if not file_name.endswith('.jpg'):
             continue
-        label = label_df.iloc[i:i+1].to_dict()['Pneumonia'][0]
-        pred_target = get_result()
+        label = label_df[label_df['file_name']==file_name]['Pneumonia'].to_list()[0]
+        label = 1 if label else 0
+        pred_target, answer = get_result(image_path)
         result_list.append([
             file_name,
             label,
             pred_target,
             int(label==pred_target),
+            answer,
         ])
-        break
+
 
     df_result = pd.DataFrame(result_list)
-    df_result.columns = ['file_name', 'label', 'pred', 'is_correct']
+    df_result.columns = ['file_name', 'label', 'pred', 'is_correct', 'gen_answer']
     correct_ratio = sum(df_result['is_correct'])/len(df_result)
     print(correct_ratio)
     df_result.to_csv('eval_classification_results.csv')
-    s
 
 if __name__ == "__main__":
     import argparse
