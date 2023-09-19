@@ -21,11 +21,9 @@ from transformers import AutoTokenizer
 
 def extract_bool_from_answer(answer) -> bool:
     # TODO extract
-    if answer.startswith('是'):
+    if answer.startswith('True'):
         return 1
-    # elif answer.startswith('否'):
-    #     return 0
-    else:
+    elif answer.startswith('False'):
         return 0
     return -1
 
@@ -37,8 +35,7 @@ def get_result(image_path) -> bool:
     with torch.no_grad():
         # TODO 多轮对话获得bool结果
         history = []
-        # input_text = "通过该x光片是否能诊断出肺炎？请回答True or False:"
-        input_text = "通过这张胸部X光影像可以诊断出肺炎吗？请回答是或否："
+        input_text = "通过该x光片是否能诊断出肺炎？请回答True or False:"
         input_image = Image.open(image_path) # direction
         answer, _history, _torch_image = chat(
             None,
@@ -78,24 +75,20 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
 
     ## validation_data initialize
-    # base_dir = "/home/qianq/data/mimic-pa-512/mimic-pa-512/valid"
-    base_dir = "/home/qianq/data/balance_mimic_pneumonia"
-    
-    label_df = pd.read_csv(f'{base_dir}/test_metadata.csv')
-    label_df = label_df[['dicom_id', 'Pneumonia']]
-    # file_name_list = os.listdir(base_dir)[:-2]
-    dicom_id_list = label_df['dicom_id'].tolist()
+    base_dir = "/home/qianq/data/mimic-pa-512/mimic-pa-512/valid"
+    label_df = pd.read_csv(f'{base_dir}/metadata.csv')
+    label_df = label_df[['file_name', 'Pneumonia']]
+    file_name_list = os.listdir(base_dir)[:-2]
     # random.shuffle(file_name_list)
 
     result_list = []
-    for i in trange(len(dicom_id_list)):
-        dicom_id = dicom_id_list[i]
-        file_name = f"{dicom_id}.jpg"
+    for i in trange(len(file_name_list)):
+        file_name = file_name_list[i]
         image_path = f"{base_dir}/{file_name}"
 
         if not file_name.endswith('.jpg'):
             continue
-        label = label_df[label_df['dicom_id']==dicom_id]['Pneumonia'].to_list()[0]
+        label = label_df[label_df['file_name']==file_name]['Pneumonia'].to_list()[0]
         label = 1 if label else 0
         pred_target, answer = get_result(image_path)
         result_list.append([
@@ -111,7 +104,7 @@ def main(args):
     df_result.columns = ['file_name', 'label', 'pred', 'is_correct', 'gen_answer']
     correct_ratio = sum(df_result['is_correct'])/len(df_result)
     print(correct_ratio)
-    df_result.to_csv('eval_classification_results_new.csv')
+    df_result.to_csv('eval_classification_results.csv')
 
 if __name__ == "__main__":
     import argparse

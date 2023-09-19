@@ -11,7 +11,7 @@ MODEL_ARGS="--max_source_length 64 \
     --max_target_length 256 \
     --pre_seq_len 128"
 
-OPTIONS_DEVICE="CUDA_VISIBLE_DEVICES=0,1"
+OPTIONS_DEVICE="CUDA_VISIBLE_DEVICES=2,3"
 # OPTIONS_SAT="SAT_HOME=$1" #"SAT_HOME=/raid/dm/sat_models"
 OPTIONS_NCCL="NCCL_DEBUG=info NCCL_IB_DISABLE=0 NCCL_NET_GDR_LEVEL=2"
 HOST_FILE_PATH="hostfile"

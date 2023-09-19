@@ -331,7 +331,6 @@ class MimicXrayDataset(Dataset):
         self.labels = []
         for i in trange(len(data)):
             item = data[i]
-            print(item)
             img_filename = item["file_name"]
             image = processor(
                 Image.open(f"{prefix_path}/{img_filename}").convert("RGB")
