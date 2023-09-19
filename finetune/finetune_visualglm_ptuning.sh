@@ -19,15 +19,17 @@ HOST_FILE_PATH="hostfile_single"
 
 # train_data="./fewshot-data/dataset.json"
 # eval_data="./fewshot-data/dataset.json"
-train_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
-eval_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
+# train_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
+# eval_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
+train_data="/home/qianq/data/balance_mimic_pneumonia/train_metadata_final.json"
+eval_data="/home/qianq/data/balance_mimic_pneumonia/train_metadata_final.json"
 
 
 gpt_options=" \
        --experiment-name finetune-$MODEL_TYPE \
        --model-parallel-size ${MP_SIZE} \
        --mode finetune \
-       --train-iters 15000 \
+       --train-iters 6000 \
        --resume-dataloader \
        $MODEL_ARGS \
        --train-data ${train_data} \
@@ -36,8 +38,8 @@ gpt_options=" \
        --lr-decay-style cosine \
        --warmup .02 \
        --checkpoint-activations \
-       --save-interval 5000 \
-       --eval-interval 5000 \
+       --save-interval 2000 \
+       --eval-interval 2000 \
        --save "./checkpoints" \
        --split 1 \
        --eval-iters 10 \

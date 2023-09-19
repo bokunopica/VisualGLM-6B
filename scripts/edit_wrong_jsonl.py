@@ -11,7 +11,7 @@ def edit_error_jsonl(file_path):
         if isinstance(line['label'], list):
             line['label'] = line['label'][0]
         res.append(line)
-    with open(file_path, 'w') as f:
+    with open(file_path.replace('jsonl', 'json'), 'w') as f:
         f.write(json.dumps(res))
 
 
