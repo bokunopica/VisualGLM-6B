@@ -380,8 +380,8 @@ class MimicXrayDataset(Dataset):
 def create_dataset_function(path, args):
     tokenizer = get_tokenizer(args)
     image_processor = BlipImageEvalProcessor(224)
-    # dataset = XrayDataset(path, image_processor, tokenizer, args)
-    dataset = MimicXrayDataset(path, image_processor, tokenizer, args)
+    dataset = XrayDataset(path, image_processor, tokenizer, args)
+    # dataset = MimicXrayDataset(path, image_processor, tokenizer, args)
     return dataset
 
 
