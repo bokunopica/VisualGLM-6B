@@ -1,11 +1,16 @@
+from torch import nn
 import torch
 from sat.model.official import ChatGLMModel
 from sat.model.base_model import BaseMixin
 from copy import deepcopy
 import json
 from .blip2 import BLIP2
-
+from sat.model.finetune import PTuningV2Mixin
+from sat.model.finetune.lora2 import LoraMixin
+from sat.model.finetune import AdapterMixin
+from sat.model.base_model import non_conflict
 from sat.resources.urls import MODEL_URLS
+
 MODEL_URLS['visualglm-6b'] = 'r2://visualglm-6b.zip'
 
 class ImageMixin(BaseMixin):
@@ -41,3 +46,142 @@ class VisualGLMModel(ChatGLMModel):
         group.add_argument('--qformer_args', type=json.loads, default={})
         return super().add_model_specific_args(parser)
     
+
+
+
+class AdjustAdapterMixin(AdapterMixin):
+    @non_conflict
+    def layer_forward(self, hidden_states, mask, old_impl, *args, **kw_args):
+        """
+        hidden_states: [batch, seq_len, hidden_size]
+        mask: [(1, 1), seq_len, seq_len]
+        """
+        layer = self.transformer.layers[kw_args["layer_id"]]
+        # Layer norm at the begining of the transformer layer.
+        hidden_states = layer.input_layernorm(hidden_states)
+        # Self attention.
+        attention_output = layer.attention(hidden_states, mask, **kw_args)
+
+        attention_output = attention_output + self.ff2[kw_args["layer_id"]](
+            nn.functional.gelu(self.ff1[kw_args["layer_id"]](attention_output))
+        )
+
+        # Residual connection.
+        layernorm_input = hidden_states + attention_output
+        # Layer norm post the self attention.
+        layernorm_output = layer.post_attention_layernorm(layernorm_input)
+
+        # MLP.
+        mlp_output = layer.mlp(layernorm_output, **kw_args)
+        mlp_output = mlp_output + self.ff4[kw_args["layer_id"]](
+            nn.functional.gelu(self.ff3[kw_args["layer_id"]](mlp_output))
+        )
+
+        # Second residual connection.
+        output = layernorm_output + mlp_output
+
+        return output
+
+
+class FineTuneVisualGLMModel(VisualGLMModel):
+    def __init__(self, args, transformer=None, parallel_output=True, **kw_args):
+        super().__init__(
+            args, transformer=transformer, parallel_output=parallel_output, **kw_args
+        )
+        if args.use_ptuning:
+            self.add_mixin(
+                "ptuning",
+                PTuningV2Mixin(
+                    args.num_layers,
+                    args.hidden_size // args.num_attention_heads,
+                    args.num_attention_heads,
+                    args.pre_seq_len,
+                ),
+            )
+        if args.use_lora:
+            self.add_mixin(
+                "lora",
+                LoraMixin(
+                    args.num_layers,
+                    args.lora_rank,
+                    layer_range=args.layer_range,
+                ),
+                reinit=True,
+            )
+            # self.get_mixin("eva").model.glm_proj = replace_linear_with_lora(self.get_mixin("eva").model.glm_proj, LoraLinear, args.lora_rank)
+        elif args.use_qlora:
+            self.add_mixin(
+                "lora",
+                LoraMixin(
+                    args.num_layers,
+                    args.lora_rank,
+                    layer_range=args.layer_range,
+                    qlora=True,
+                ),
+                reinit=True,
+            )
+        elif args.use_adapter:
+            # adapter finetune
+            self.add_mixin(
+                "adapter",
+                AdjustAdapterMixin(
+                    num_layers=args.num_layers, # 28-transformer一致
+                    hidden_size=args.hidden_size, # 4096
+                    adapter_hidden=args.adapter_hidden, # specified in .sh
+                ),
+            )
+            pass
+        self.args = args
+
+    @classmethod
+    def add_model_specific_args(cls, parser):
+        group = parser.add_argument_group(
+            "VisualGLM-finetune", "VisualGLM finetune Configurations"
+        )
+        group.add_argument("--pre_seq_len", type=int, default=8)
+        group.add_argument("--lora_rank", type=int, default=10)
+        group.add_argument("--use_ptuning", action="store_true")
+        group.add_argument("--use_lora", action="store_true")
+        group.add_argument("--use_qlora", action="store_true")
+        group.add_argument("--layer_range", nargs="+", type=int, default=None)
+        group.add_argument("--use_adapter", action="store_true")
+        group.add_argument("--adapter_hidden", type=int, default=128)
+        group.add_argument("--adapter_num_layers", type=int, default=28)
+        group.add_argument("--use_freeze", action="store_true")
+        group.add_argument("--unfreeze_layers", type=str, default="")
+        group.add_argument("--train_qformer", action="store_true")
+        return super().add_model_specific_args(parser)
+
+    def disable_untrainable_params(self):
+        enable = []
+        if self.args.use_ptuning:
+            enable.extend(["ptuning"])
+        if self.args.use_lora or self.args.use_qlora:
+            enable.extend(["matrix_A", "matrix_B"])
+        if self.args.use_freeze:
+            unfreeze_layers = self.args.unfreeze_layers.split(',')
+        else:
+            unfreeze_layers = []
+        print('------------unfreeze_layer--------------')
+        for n, p in self.named_parameters():
+            flag = False
+            # adapter unfreeze
+            if self.args.use_adapter and n.startswith("mixins.adapter"):
+                flag = True
+            elif self.args.use_freeze:
+                for unfreeze_layer in unfreeze_layers:
+                    if n.startswith(f"transformer.layers.{unfreeze_layer}."):
+                        flag = True
+                        break
+            elif self.args.train_qformer and n.startswith("mixins.eva.model.qformer"):
+                flag = True
+            else:
+                for e in enable:
+                    if e.lower() in n.lower():
+                        flag = True
+                        break
+            if not flag:
+                p.requires_grad_(False)
+            else:
+                print(n)
+        print('------------unfreeze_layer--------------')
