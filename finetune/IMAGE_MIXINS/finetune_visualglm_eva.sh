@@ -10,16 +10,16 @@ MODEL_TYPE="visualglm-6b-eva"
 MODEL_ARGS="--max_source_length 64 \
     --max_target_length 256"
 
-OPTIONS_DEVICE="CUDA_VISIBLE_DEVICES=0"
+OPTIONS_DEVICE="CUDA_VISIBLE_DEVICES=0,2"
 # OPTIONS_SAT="SAT_HOME=$1" #"SAT_HOME=/raid/dm/sat_models"
 OPTIONS_NCCL="NCCL_DEBUG=info NCCL_IB_DISABLE=0 NCCL_NET_GDR_LEVEL=2"
 HOST_FILE_PATH="hostfile"
 HOST_FILE_PATH="hostfile_single"
 
-train_data="./fewshot-data/dataset.json"
-eval_data="./fewshot-data/dataset.json"
-# train_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
-# eval_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
+# train_data="./fewshot-data/dataset.json"
+# eval_data="./fewshot-data/dataset.json"
+train_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
+eval_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
 # train_data="/home/qianq/data/balance_mimic_pneumonia/train_metadata_final.json"
 # eval_data="/home/qianq/data/balance_mimic_pneumonia/train_metadata_final.json"
 
