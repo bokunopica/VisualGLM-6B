@@ -13,6 +13,9 @@
 🤖<a href="https://huggingface.co/spaces/THUDM/visualglm-6b" target="_blank">VisualGLM-6B在线演示网站</a>
 </p> -->
 
+## News
+[2023.10] 欢迎关注智谱AI新一代多模态对话模型CogVLM（ https://github.com/THUDM/CogVLM ），采用视觉专家新架构，在10项权威经典多模态任务上取得第一名。目前开源CogVLM-17B英文模型，即将基于GLM开源中文模型。
+
 ## 介绍
 
 VisualGLM-6B is an open-source, multi-modal dialog language model that supports **images, Chinese, and English**. The language model is based on [ChatGLM-6B](https://github.com/THUDM/ChatGLM-6B) with 6.2 billion parameters; the image part builds a bridge between the visual model and the language model through the training of [BLIP2-Qformer](https://arxiv.org/abs/2301.12597), with the total model comprising 7.8 billion parameters. **[Click here for English version.](README_en.md)**
@@ -52,6 +55,15 @@ VisualGLM-6B 可以进行图像的描述的相关知识的问答。
 ![样例](https://github.com/WangRongsheng/XrayGLM/raw/main/assets/images/xrayglm.png)
 </details>
 
+* [StarGLM](https://github.com/WangRongsheng/XrayGLM) 是基于Chat/visualGLM-6B在天文数据集上微调的项目，能回答变星光变曲线相关的信息。
+<details>
+<summary>点击查看样例</summary>
+
+![样例](https://github.com/Yu-Yang-Li/StarGLM/raw/main/example/example_4.png)
+
+</details>
+
+
 ## 使用
 
 ### 模型推理
@@ -66,7 +78,7 @@ pip install -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
 如果想绕过`deepspeed`安装，我们可以将命令改为
 ```
 pip install -i https://mirrors.aliyun.com/pypi/simple/ -r requirements_wo_ds.txt
-pip install -i https://mirrors.aliyun.com/pypi/simple/ --no-deps "SwissArmyTransformer>=0.3.6"
+pip install -i https://mirrors.aliyun.com/pypi/simple/ --no-deps "SwissArmyTransformer>=0.4.4"
 ```
 
 如果使用Huggingface transformers库调用模型（**也需要安装上述依赖包！**），可以通过如下代码（其中图像路径为本地路径）：
