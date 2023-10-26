@@ -18,8 +18,8 @@ HOST_FILE_PATH="hostfile_single"
 
 # train_data="./fewshot-data/dataset.json"
 # eval_data="./fewshot-data/dataset.json"
-train_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
-eval_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-prompt.json"
+train_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-train-prompt.json"
+eval_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-test-prompt.json"
 # train_data="/home/qianq/data/balance_mimic_pneumonia/train_metadata_final.json"
 # eval_data="/home/qianq/data/balance_mimic_pneumonia/train_metadata_final.json"
 
@@ -28,7 +28,7 @@ gpt_options=" \
        --experiment-name finetune-$MODEL_TYPE \
        --model-parallel-size ${MP_SIZE} \
        --mode finetune \
-       --train-iters 10000 \
+       --train-iters 3000 \
        --resume-dataloader \
        $MODEL_ARGS \
        --train-data ${train_data} \
