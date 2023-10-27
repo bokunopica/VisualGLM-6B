@@ -67,6 +67,7 @@ def main(args):
     torch.manual_seed(110)
     # model initialize
     global model, tokenizer
+    
     model, model_args = FineTuneVisualGLMModel.from_pretrained(
         args.ckpt_path,
         args=argparse.Namespace(
@@ -85,21 +86,24 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
 
     ## validation_data initialize
-    result_list = []
+    # result_list = []
 
     base_dir = "/home/qianq/data/OpenI-zh-resize-384/images"
     file_path = "/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-test-prompt.json"
     with open(file_path) as f:
         data = json.load(f)
+    f = open(args.report_save_path, 'w', encoding='utf-8')
     for i in trange(len(data)):
         single_data = data[i]
         image_path = f"{base_dir}/{single_data['img'].split('/')[-1]}"
         generate_report = get_result(image_path)
         single_data['generated'] = generate_report
-        result_list.append(single_data)
+        f.write(json.dumps(single_data, ensure_ascii=False))
+        f.write('\n')
+        # result_list.append(single_data)
     
-    with open("eval_reports.json", 'w') as f:
-        f.write(json.dumps(result_list))
+    # with open(args.report_save_path, 'w') as f:
+    #     f.write(json.dumps(result_list))
 
 if __name__ == "__main__":
     import argparse
@@ -108,5 +112,6 @@ if __name__ == "__main__":
     parser.add_argument("--quant", choices=[8, 4], type=int, default=None)
     parser.add_argument("--share", action="store_true")
     parser.add_argument("--ckpt_path", type=str)
+    parser.add_argument("--report_save_path", type=str)
     args = parser.parse_args()
     main(args)

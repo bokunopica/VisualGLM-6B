@@ -1,6 +1,7 @@
 checkpoints/
 runs/
 model/__pycache__/
+reports/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
