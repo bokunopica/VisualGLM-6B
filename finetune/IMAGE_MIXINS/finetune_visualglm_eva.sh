@@ -37,7 +37,7 @@ gpt_options=" \
        --lr-decay-style cosine \
        --warmup .02 \
        --checkpoint-activations \
-       --save-interval 2000 \
+       --save-interval 1000 \
        --eval-interval 10 \
        --save "./checkpoints" \
        --split 1 \
