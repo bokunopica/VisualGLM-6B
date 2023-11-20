@@ -75,7 +75,7 @@ def main(args):
     if torch.cuda.is_available():
         model = model.cuda()
     model.add_mixin('auto-regressive', CachedAutoregressiveMixin())
-    tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained("/home/qianq/model/chatglm-6b", trust_remote_code=True)
 
     ## validation_data initialize
     # base_dir = "/home/qianq/data/mimic-pa-512/mimic-pa-512/valid"

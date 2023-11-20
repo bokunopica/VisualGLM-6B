@@ -25,7 +25,7 @@ def get_infer_setting(gpu_device=0, quant=None):
         quantize(model.transformer, quant)
     model.eval()
     model = model.cuda()
-    tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained("/home/qianq/model/chatglm-6b", trust_remote_code=True)
     return model, tokenizer
 
 def is_chinese(text):

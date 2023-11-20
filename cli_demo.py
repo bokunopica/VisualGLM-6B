@@ -44,7 +44,7 @@ def main():
 
     model.add_mixin('auto-regressive', CachedAutoregressiveMixin())
 
-    tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained("/home/qianq/model/chatglm-6b", trust_remote_code=True)
     if not args.english:
         print('欢迎使用 VisualGLM-6B 模型，输入图像URL或本地路径读图，继续输入内容对话，clear 重新开始，stop 终止程序')
     else:

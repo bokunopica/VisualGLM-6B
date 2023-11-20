@@ -44,7 +44,7 @@ def main():
 
     model.add_mixin('auto-regressive', CachedAutoregressiveMixin())
 
-    tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained("/home/qianq/model/chatglm-6b", trust_remote_code=True)
     image_path = 'fewshot-data/meme.png'
     query = args.prompt_en if args.english else args.prompt_zh
     history = None
@@ -62,7 +62,7 @@ def main():
         top_k=args.top_k,
         english=args.english,
         invalid_slices=[slice(63823, 130000)] if args.english else []
-        )
+    )
     sep = 'A:' if args.english else '答：'
     print(response.split(sep)[-1].strip())
 
