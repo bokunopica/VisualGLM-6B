@@ -88,8 +88,8 @@ def main(args):
     ## validation_data initialize
     # result_list = []
 
-    base_dir = "/home/qianq/data/COV-CTR/"
-    file_path = "/home/qianq/data/COV-CTR/eval.json"
+    base_dir = "/home/qianq/data/OpenI-zh-resize-384/images"
+    file_path = "/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-test-prompt.json"
     with open(file_path) as f:
         data = json.load(f)
     f = open(args.report_save_path, 'w', encoding='utf-8')
