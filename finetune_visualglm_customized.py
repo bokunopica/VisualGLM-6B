@@ -274,9 +274,7 @@ def main():
 
     # datasets
     train_dataset=create_dataset_function(args.train_data[0], args, tokenizer)
-    print(args.valid_data[0])
     eval_dataset=create_dataset_function(args.valid_data[0], args, tokenizer)
-
 
     # model
     # model_type = "visualglm-6b"
@@ -370,6 +368,28 @@ def test():
     # datasets
     train_dataset=create_dataset_function(args.train_data[0], args, tokenizer)
     eval_dataset=create_dataset_function(args.valid_data[0], args, tokenizer)
+
+    def data_collator(examples):
+        for example in examples:
+            example["input_ids"] = torch.tensor(example["input_ids"], dtype=torch.long)
+            example["labels"] = torch.tensor(example["labels"], dtype=torch.long)
+        ret = {
+            "input_ids": torch.stack([example["input_ids"] for example in examples]),
+            "labels": torch.stack([example["labels"] for example in examples]),
+            "image": torch.stack([example["image"] for example in examples]),
+            "pre_image": example["pre_image"],
+        }
+        return ret
+
+    train_custom(
+        args,
+        model_cls=None,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        collate_fn=data_collator,
+        # forward_step_function=forward_step,
+    )
+
 
 
 
