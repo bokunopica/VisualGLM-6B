@@ -18,8 +18,10 @@ HOST_FILE_PATH="hostfile_single"
 
 # train_data="./fewshot-data/dataset.json"
 # eval_data="./fewshot-data/dataset.json"
-train_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-train-prompt.json"
-eval_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-test-prompt.json"
+# train_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-train-prompt.json"
+# eval_data="/home/qianq/data/OpenI-zh-resize-384/images/openi-zh-test-prompt.json"
+train_data="/home/qianq/data/COV-CTR/train.json"
+eval_data="/home/qianq/data/COV-CTR/eval.json"
 
 
 

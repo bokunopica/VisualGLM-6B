@@ -1,4 +1,4 @@
-CKPT_NAME='finetune-visualglm-6b-lora'
+CKPT_NAME='finetune-visualglm-6b-freeze-0,14'
 PREFIX='COV-CTR'
 CKPT_PATH="/home/qianq/mycodes/VisualGLM-6B/checkpoints/$PREFIX/$CKPT_NAME"
 REPORT_SAVE_PATH="/home/qianq/mycodes/VisualGLM-6B/reports/$PREFIX/$CKPT_NAME.jsonl"
