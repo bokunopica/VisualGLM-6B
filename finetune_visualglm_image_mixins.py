@@ -10,6 +10,7 @@ from sat import mpu, get_args, get_tokenizer
 from sat.training.deepspeed_training import training_main
 from model.blip2 import BlipImageEvalProcessor
 from model.visualglm import FineTuneVisualGLMModel
+from transformers import AutoTokenizer
 
 
 def get_batch(data_iterator, args, timers):
@@ -234,7 +235,8 @@ class MimicXrayDataset(Dataset):
 
 
 def create_dataset_function(path, args):
-    tokenizer = get_tokenizer(args)
+    # tokenizer = get_tokenizer(args)
+    tokenizer = AutoTokenizer.from_pretrained("/home/qianq/model/chatglm-6b", trust_remote_code=True)
     image_processor = BlipImageEvalProcessor(224)
     dataset = XrayDataset(path, image_processor, tokenizer, args)
     # dataset = MimicXrayDataset(path, image_processor, tokenizer, args)
@@ -289,7 +291,8 @@ if __name__ == "__main__":
 
     if torch.cuda.is_available():
         model = model.to("cuda")
-    tokenizer = get_tokenizer(args)
+    # tokenizer = get_tokenizer(args)
+    tokenizer = AutoTokenizer.from_pretrained("/home/qianq/model/chatglm-6b", trust_remote_code=True)
     label_pad_token_id = (
         -100 if args.ignore_pad_token_for_loss else tokenizer.pad_token_id
     )

@@ -150,6 +150,7 @@ class FineTuneVisualGLMModel(VisualGLMModel):
         group.add_argument("--use_freeze", action="store_true")
         group.add_argument("--unfreeze_layers", type=str, default="")
         group.add_argument("--train_qformer", action="store_true")
+        group.add_argument("--train_vit_transformer", type=str, default="")
         return super().add_model_specific_args(parser)
 
     def disable_untrainable_params(self):
@@ -162,6 +163,13 @@ class FineTuneVisualGLMModel(VisualGLMModel):
             unfreeze_layers = self.args.unfreeze_layers.split(',')
         else:
             unfreeze_layers = []
+
+        if self.args.train_vit_transformer:
+            train_vit_transformers = self.args.train_vit_transformer.split(',')
+        else:
+            train_vit_transformers = []
+
+
         print('------------unfreeze_layer--------------')
         for n, p in self.named_parameters():
             flag = False
@@ -174,7 +182,14 @@ class FineTuneVisualGLMModel(VisualGLMModel):
                         flag = True
                         break
             elif self.args.train_qformer and n.startswith("mixins.eva.model.qformer"):
+                # qformer unfreeze
                 flag = True
+            elif self.args.train_vit_transformer and n.startswith("mixins.eva.model.vit.transformer.layers."):
+                # Vit unfreeze
+                _n = n.replace("mixins.eva.model.vit.transformer.layers.", "")
+                _n = _n.split('.')[0]
+                if _n in train_vit_transformers:
+                    flag = True
             else:
                 for e in enable:
                     if e.lower() in n.lower():

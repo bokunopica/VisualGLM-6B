@@ -5,7 +5,7 @@ import json
 from PIL import Image
 from tqdm import trange
 
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from sat import mpu, get_args, get_tokenizer
 from transformers import AutoTokenizer
 from sat.training.deepspeed_training import training_main
@@ -251,8 +251,20 @@ def train_custom(
     model_cls=None,
 ):
     print('-------train_custom-------')
-    for item in train_dataset:
-        print(item)
+    """
+    dataset getitem
+    {
+        "image": self.images[idx],
+        "input_ids": self.input_ids[idx],
+        "labels": self.labels[idx],
+        "pre_image": self.pre_image,
+    }
+    """
+    print(args)
+    train_dataloader = DataLoader(
+        dataset=train_dataset,
+        batch_size=args.batch_size
+    )
     print('-------train_custom-------')
 
 
