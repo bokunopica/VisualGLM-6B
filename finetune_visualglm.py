@@ -16,6 +16,7 @@ from sat.model.finetune import PTuningV2Mixin
 from sat.model.finetune.lora2 import LoraMixin
 from sat.model.finetune import AdapterMixin
 from sat.model.base_model import non_conflict
+from transformers import AutoTokenizer
 
 
 class AdjustAdapterMixin(AdapterMixin):
@@ -378,7 +379,8 @@ class MimicXrayDataset(Dataset):
 
 
 def create_dataset_function(path, args):
-    tokenizer = get_tokenizer(args)
+    # tokenizer = get_tokenizer(args)
+    tokenizer = AutoTokenizer.from_pretrained("/home/qianq/model/chatglm-6b", trust_remote_code=True)
     image_processor = BlipImageEvalProcessor(224)
     dataset = XrayDataset(path, image_processor, tokenizer, args)
     # dataset = MimicXrayDataset(path, image_processor, tokenizer, args)
@@ -392,15 +394,21 @@ if __name__ == "__main__":
     py_parser.add_argument("--ignore_pad_token_for_loss", type=bool, default=True)
     # py_parser.add_argument('--old_checkpoint', action="store_true")
     py_parser.add_argument("--source_prefix", type=str, default="")
+    py_parser.add_argument("--use_trained_eva", action="store_true")
     py_parser = FineTuneVisualGLMModel.add_model_specific_args(py_parser)
     known, args_list = py_parser.parse_known_args()
     args = get_args(args_list)
     args = argparse.Namespace(**vars(args), **vars(known))
     args.device = "cpu"
 
+
     model_type = "visualglm-6b"
+    # if args.ckpt is None:
+    # 无存档点 则读入初始预训练参数
     model, args = FineTuneVisualGLMModel.from_pretrained(
-        model_type, args, build_only=True
+        model_type,
+        args,
+        build_only=True,
     )
     for sub_model_name in model.mixins:
         print(sub_model_name)
@@ -417,9 +425,31 @@ if __name__ == "__main__":
         )
     )
 
+    if args.use_trained_eva:
+        model.mixins['eva'].load_state_dict(
+            torch.load(
+                f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/eva.ckpt"
+            )
+        )
+    # else:
+    #     # 读入微调后的存档点
+    #     # args.use_gpu_initialization = True
+    #     # args.skip_init=True
+    #     # LOCAL_RANK = os.environ.get('LOCAL_RANK')
+    #     # args.device=f'cuda:{LOCAL_RANK}'
+    #     model, args = FineTuneVisualGLMModel.from_pretrained(
+    #         model_type,
+    #         args=args,
+    #     )
+    #     state_dict = torch.load(args.ckpt)
+    #     # model = model.to("cuda")
+    #     model.load_state_dict(state_dict)
+
+
     if torch.cuda.is_available():
         model = model.to("cuda")
-    tokenizer = get_tokenizer(args)
+    # tokenizer = get_tokenizer(args)
+    tokenizer = AutoTokenizer.from_pretrained("/home/qianq/model/chatglm-6b", trust_remote_code=True)
     label_pad_token_id = (
         -100 if args.ignore_pad_token_for_loss else tokenizer.pad_token_id
     )

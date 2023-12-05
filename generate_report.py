@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
 import random
-import gradio as gr
 from PIL import Image
 import os
 import json
-import pandas as pd
 from model import (
     is_chinese,
     get_infer_setting,
@@ -18,6 +16,7 @@ from finetune_visualglm import FineTuneVisualGLMModel
 from sat.quantization.kernels import quantize
 from sat.model.mixins import CachedAutoregressiveMixin
 from transformers import AutoTokenizer
+
 
 def extract_bool_from_answer(answer) -> bool:
     # TODO extract
@@ -67,7 +66,7 @@ def main(args):
     torch.manual_seed(110)
     # model initialize
     global model, tokenizer
-    
+
     model, model_args = FineTuneVisualGLMModel.from_pretrained(
         args.ckpt_path,
         args=argparse.Namespace(
