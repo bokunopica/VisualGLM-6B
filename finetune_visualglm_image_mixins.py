@@ -55,6 +55,7 @@ def forward_step(data_iterator, model, args, timers):
     # Shift so that tokens < n predict n
     shift_logits = lm_logits[..., :-1, :].contiguous()
     shift_labels = labels[..., 1:].contiguous()
+    
     # Flatten the tokens
     loss_fct = CrossEntropyLoss(ignore_index=-100)
     loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))

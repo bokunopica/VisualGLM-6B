@@ -4,10 +4,10 @@ import json
 
 
 def transfer_csv_to_json():
+    random.seed(1007)
     base_path = "/home/qianq/data/COV-CTR"
     csv_path = f"{base_path}/reports_ZH_EN.csv"
     img_path = base_path + "/"
-    
     df = pd.read_csv(csv_path)
     result_list = []
     prompt_temp = [
@@ -24,17 +24,16 @@ def transfer_csv_to_json():
             "img": img_path + row['image_id'],
             "prompt": random.choice(prompt_temp),
             "label": row['findings'],
+            "is_covid": row['COVID'],
         })
-
-    random.seed(1007)
     random.shuffle(result_list)
     train_len = int(len(result_list)*0.8)
     train_path = f"{base_path}/train.json"
     eval_path = f"{base_path}/eval.json"
     with open(train_path, 'w') as f:
-        f.write(json.dumps(result_list[:train_len]))
+        f.write(json.dumps(result_list[:train_len], ensure_ascii=False))
     with open(eval_path, 'w') as f:
-        f.write(json.dumps(result_list[train_len:]))
+        f.write(json.dumps(result_list[train_len:], ensure_ascii=False))
 
 
 
