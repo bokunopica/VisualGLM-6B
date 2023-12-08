@@ -6,11 +6,11 @@ MP_SIZE=1
 script_path=$(realpath $0)
 script_dir=$(dirname $script_path)
 main_dir=$(dirname $script_dir)
-MODEL_TYPE="visualglm-6b-eva++"
+MODEL_TYPE="visualglm-6b-eva"
 MODEL_ARGS="--max_source_length 64 \
     --max_target_length 256"
 
-OPTIONS_DEVICE="CUDA_VISIBLE_DEVICES=0"
+OPTIONS_DEVICE="CUDA_VISIBLE_DEVICES=2"
 # OPTIONS_SAT="SAT_HOME=$1" #"SAT_HOME=/raid/dm/sat_models"
 OPTIONS_NCCL="NCCL_DEBUG=info NCCL_IB_DISABLE=0 NCCL_NET_GDR_LEVEL=2 NCCL_P2P_DISABLE=1"
 HOST_FILE_PATH="hostfile"
@@ -55,7 +55,7 @@ gpt_options=" \
 
               
 
-run_cmd="${OPTIONS_DEVICE} ${OPTIONS_NCCL} ${OPTIONS_SAT} python finetune_visualglm_customized.py ${gpt_options}"
+run_cmd="${OPTIONS_DEVICE} ${OPTIONS_NCCL} ${OPTIONS_SAT} deepspeed --master_port 16666 --hostfile ${HOST_FILE_PATH} finetune_visualglm_customized.py ${gpt_options}"
 echo ${run_cmd}
 eval ${run_cmd}
 
