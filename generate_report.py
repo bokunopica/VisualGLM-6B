@@ -62,8 +62,8 @@ def get_result(image_path) -> bool:
 
 def main(args):
     # 固定随机种子
-    random.seed(110)
-    torch.manual_seed(110)
+    random.seed(args.seed)
+    torch.manual_seed(args.seed)
     # model initialize
     global model, tokenizer
 
@@ -112,5 +112,6 @@ if __name__ == "__main__":
     parser.add_argument("--share", action="store_true")
     parser.add_argument("--ckpt_path", type=str)
     parser.add_argument("--report_save_path", type=str)
+    parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
     main(args)

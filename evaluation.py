@@ -91,7 +91,7 @@ def calc_metrics(reports):
 
 
 if __name__ == "__main__":
-    reports_path = "/home/qianq/mycodes/VisualGLM-6B/reports/COV-CTR/finetune-visualglm-6b-qformer+freeze.jsonl"
+    reports_path = "/home/qianq/mycodes/VisualGLM-6B/reports/COV-CTR-seed114514/finetune-visualglm-6b-eva-qformer+classification-label.jsonl"
     reports = read_reports(reports_path)
     calc_metrics(reports)
     
