@@ -102,7 +102,7 @@ class XrayDataset(Dataset):
             else:
                 disease_prompt = "该患者未患新冠肺炎。"
             input2 = tokenizer.encode(
-                "</img>问：" + item["prompt"] + ""+ "\n答：", add_special_tokens=False
+                "</img>问：" + disease_prompt + item["prompt"] + "\n答：", add_special_tokens=False
             )
             a_ids = sum([input0, input1, input2], [])
             b_ids = tokenizer.encode(text=item["label"], add_special_tokens=False)

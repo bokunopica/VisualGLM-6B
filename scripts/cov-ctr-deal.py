@@ -11,7 +11,7 @@ def transfer_csv_to_json():
     df = pd.read_csv(csv_path)
     result_list = []
     prompt_temp = [
-        '通过这张胸部X光影像可以诊断出什么？',
+        '通过这张胸部CT可以诊断出什么？',
         '这张图片的背景里有什么内容？',
         '详细描述一下这张图片',
         '看看这张图片并描述你注意到的内容',
