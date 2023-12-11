@@ -1,6 +1,6 @@
-CKPT_NAME='finetune-visualglm-6b-eva-vit-qformer'
+CKPT_NAME='finetune-visualglm-6b-eva-qformer+classification-label'
 PREFIX='COV-CTR'
-SEED=114514
+SEED=1919810
 CKPT_PATH="checkpoints/$PREFIX/$CKPT_NAME"
 REPORT_SAVE_PATH="reports/$PREFIX-seed$SEED/$CKPT_NAME.jsonl"
 

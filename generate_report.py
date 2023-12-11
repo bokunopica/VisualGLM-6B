@@ -12,7 +12,7 @@ from model import (
 )
 from tqdm import trange
 import torch
-from finetune_visualglm import FineTuneVisualGLMModel
+from finetune_visualglm_image_mixins import FineTuneVisualGLMModel
 from sat.quantization.kernels import quantize
 from sat.model.mixins import CachedAutoregressiveMixin
 from transformers import AutoTokenizer
@@ -27,7 +27,7 @@ def extract_bool_from_answer(answer) -> bool:
     else:
         return -1
 
-def get_result(image_path) -> bool:
+def get_result(image_path, prompt=None, use_covid_tag=False, is_covid=None) -> str:
     temperature = 1e-6 # 尽可能减小随机性 
     max_length = 512
     top_p = 0.4
@@ -43,7 +43,13 @@ def get_result(image_path) -> bool:
 
     with torch.no_grad():
         history = []
-        input_text = "通过这张胸部X光影像可以诊断出什么？"
+        input_text = prompt if prompt is not None else "通过这张胸部X光影像可以诊断出什么？"
+        if use_covid_tag:
+            if is_covid:
+                disease_prompt = "该患者患有新冠肺炎。"
+            else:
+                disease_prompt = "该患者未患有新冠肺炎。"
+            input_text = f"{disease_prompt}{input_text}"
         input_image = Image.open(image_path) # direction
         answer, _history, _torch_image = chat(
             None,
@@ -58,7 +64,7 @@ def get_result(image_path) -> bool:
             temperature=temperature,
             english=False,
         )
-    return answer # result int, answer str
+    return answer # answer str
 
 def main(args):
     # 固定随机种子
@@ -91,11 +97,22 @@ def main(args):
     file_path = "/home/qianq/data/COV-CTR/eval.json"
     with open(file_path) as f:
         data = json.load(f)
+
+    # 外部文件夹处理
+    save_dir = "/".join(args.report_save_path.split('/')[:-1])
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
     f = open(args.report_save_path, 'w', encoding='utf-8')
     for i in trange(len(data)):
         single_data = data[i]
         image_path = f"{base_dir}/{single_data['img'].split('/')[-1]}"
-        generate_report = get_result(image_path)
+        generate_report = get_result(
+            image_path, 
+            prompt=single_data['prompt'], 
+            use_covid_tag=args.use_covid_tag,
+            is_covid=single_data['is_covid']
+        )
         single_data['generated'] = generate_report
         f.write(json.dumps(single_data, ensure_ascii=False))
         f.write('\n')
@@ -113,5 +130,6 @@ if __name__ == "__main__":
     parser.add_argument("--ckpt_path", type=str)
     parser.add_argument("--report_save_path", type=str)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--use_covid_tag", action="store_true")
     args = parser.parse_args()
     main(args)
