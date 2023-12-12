@@ -191,6 +191,7 @@ class FineTuneVisualGLMModel(VisualGLMModel):
         group.add_argument("--unfreeze_layers", type=str, default="")
         group.add_argument("--train_qformer", action="store_true")
         group.add_argument("--train_vit_transformer", type=str, default="")
+        group.add_argument("--cls_fusion", action="store_true")
         # group.add_argument("--use_classification_info", action="store_true")
         
         return super().add_model_specific_args(parser)
@@ -225,6 +226,8 @@ class FineTuneVisualGLMModel(VisualGLMModel):
                         break
             elif self.args.train_qformer and n.startswith("mixins.eva.model.qformer"):
                 # qformer unfreeze
+                flag = True
+            elif self.args.cls_fusion and n.startswith("mixins.eva.fusion_model"):
                 flag = True
             elif self.args.train_vit_transformer and n.startswith("mixins.eva.model.vit.transformer.layers."):
                 # Vit unfreeze

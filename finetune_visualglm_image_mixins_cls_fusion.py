@@ -77,7 +77,6 @@ if __name__ == "__main__":
     py_parser.add_argument("--ignore_pad_token_for_loss", type=bool, default=True)
     # py_parser.add_argument('--old_checkpoint', action="store_true")
     py_parser.add_argument("--source_prefix", type=str, default="")
-    py_parser.add_argument("--cls_fusion", action="store_true")
     py_parser = FineTuneVisualGLMModel.add_model_specific_args(py_parser)
     known, args_list = py_parser.parse_known_args()
     args = get_args(args_list)
@@ -90,15 +89,14 @@ if __name__ == "__main__":
     )
     for sub_model_name in model.mixins:
         print(sub_model_name)
-        if sub_model_name in ["adapter", "ptuning", "lora", "fusion_model.embedding"]:
+        if sub_model_name in ["adapter", "ptuning", "lora"]:
             continue
         elif sub_model_name == "eva":
             model.mixins[sub_model_name].model.load_state_dict(
                 torch.load(
-                    f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/{sub_model_name}.ckpt"
+                    f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/eva.model.ckpt"
                 )
             )
-            pass
         else:
             model.mixins[sub_model_name].load_state_dict(
                 torch.load(
