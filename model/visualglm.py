@@ -31,7 +31,6 @@ class FusionModel(nn.Module):
         self.embedding = nn.Embedding(num_classes, emb_dim)
 
     def forward(self, condition, image_emb):
-        print('wwwwwwwwwwwwwwwwwww')
         cond_emb = self.embedding(condition)
         return cond_emb + image_emb
 
@@ -47,7 +46,7 @@ class ImageMixin(BaseMixin):
             args.eva_args, 
             args.qformer_args,
         )
-        if "cls_fusion" in args and args.cls_fusion:
+        if args.cls_fusion:
             self.cls_fusion = False
             # TODO fusion model
             self.fusion_model = FusionModel(emb_dim=4096, num_classes=2)

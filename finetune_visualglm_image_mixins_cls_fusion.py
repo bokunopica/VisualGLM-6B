@@ -41,10 +41,10 @@ def forward_step(data_iterator, model, args, timers):
     """Forward step."""
     # Get the batch.
     timers("batch generator").start()
-    tokens, labels, image, pre_image = get_batch(data_iterator, args, timers)
+    tokens, labels, image, pre_image, is_covid = get_batch(data_iterator, args, timers)
     timers("batch generator").stop()
 
-    logits = model(input_ids=tokens, image=image, pre_image=pre_image)[0]
+    logits = model(input_ids=tokens, image=image, pre_image=pre_image, is_covid=is_covid)[0]
     dtype = logits.dtype
     lm_logits = logits.to(torch.float32)
 
