@@ -45,10 +45,14 @@ def get_result(image_path, prompt=None, use_covid_tag=False, is_covid=None) -> s
         history = []
         input_text = prompt if prompt is not None else "通过这张胸部X光影像可以诊断出什么？"
         if use_covid_tag:
+            # if is_covid:
+            #     disease_prompt = "该患者患有新冠肺炎。"
+            # else:
+            #     disease_prompt = "该患者未患有新冠肺炎。"
             if is_covid:
-                disease_prompt = "该患者患有新冠肺炎。"
+                disease_prompt = "该位受检者患有肺炎。"
             else:
-                disease_prompt = "该患者未患有新冠肺炎。"
+                disease_prompt = "该位受检者未患有肺炎。"
             input_text = f"{disease_prompt}{input_text}"
         input_image = Image.open(image_path) # direction
         answer, _history, _torch_image = chat(
@@ -131,5 +135,6 @@ if __name__ == "__main__":
     parser.add_argument("--report_save_path", type=str)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--use_covid_tag", action="store_true")
+    parser.add_argument("--vqa", action="store_true")
     args = parser.parse_args()
     main(args)

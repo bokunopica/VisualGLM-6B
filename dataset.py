@@ -4,12 +4,15 @@ from tqdm import trange
 from torch import nn
 from torch.utils.data import Dataset
 
+
 def singleton(cls):
     instances = {}
+
     def _singleton(*args, **kwargs):
         if cls not in instances:
             instances[cls] = cls(*args, **kwargs)
         return instances[cls]
+
     return _singleton
 
 
@@ -63,8 +66,9 @@ class FewShotDataset(Dataset):
             "pre_image": self.pre_image,
         }
 
+
 @singleton
-class CovCTRDataset(Dataset):    
+class CovCTRDataset(Dataset):
     def __init__(self, path, processor, tokenizer, args):
         max_seq_length = args.max_source_length + args.max_target_length
         with open(path, "r", encoding="utf-8") as f:
@@ -73,6 +77,7 @@ class CovCTRDataset(Dataset):
         self.images = []
         self.input_ids = []
         self.labels = []
+        self.covid_labels = []
         for i in trange(len(data)):
             item = data[i]
             img_filename = item["img"].split("/")[-1]
@@ -82,12 +87,14 @@ class CovCTRDataset(Dataset):
             input0 = tokenizer.encode("<img>", add_special_tokens=False)
             input1 = [tokenizer.pad_token_id] * args.image_length
             ## cls_fusion
-            disease_prompt = ""
-            if "cls_fusion" in args:
-                if item.get('is_covid', 0):
-                    disease_prompt = "该患者患有肺炎。"
+            # disease_prompt = ""
+            # if "cls_fusion" in args:
+            #     if item.get('is_covid', 0):
+            #         disease_prompt = "该位受检者患有肺炎。"
+            #     else:
+            #         disease_prompt = "该位受检者未患有肺炎。"
             input2 = tokenizer.encode(
-                "</img>问：" + disease_prompt + item["prompt"] + "\n答：", add_special_tokens=False
+                "</img>问：" + item["prompt"] + "\n答：", add_special_tokens=False
             )
             a_ids = sum([input0, input1, input2], [])
             b_ids = tokenizer.encode(text=item["label"], add_special_tokens=False)
@@ -110,6 +117,7 @@ class CovCTRDataset(Dataset):
             self.images.append(image)
             self.input_ids.append(input_ids)
             self.labels.append(labels)
+            self.covid_labels.append(item["is_covid"])
         self.pre_image = pre_image
 
     def __len__(self):
@@ -121,10 +129,12 @@ class CovCTRDataset(Dataset):
             "input_ids": self.input_ids[idx],
             "labels": self.labels[idx],
             "pre_image": self.pre_image,
+            "is_covid": self.covid_labels[idx],
         }
 
+
 @singleton
-class MimicXrayDataset(Dataset):    
+class MimicXrayDataset(Dataset):
     def __init__(self, path, processor, tokenizer, args):
         max_seq_length = args.max_source_length + args.max_target_length
         with open(path, "r", encoding="utf-8") as f:
@@ -177,4 +187,3 @@ class MimicXrayDataset(Dataset):
             "labels": self.labels[idx],
             "pre_image": self.pre_image,
         }
-
