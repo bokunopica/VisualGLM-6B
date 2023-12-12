@@ -31,7 +31,7 @@ def get_batch(data_iterator, args, timers):
     img = data_i["image"]
     if args.fp16:
         img = img.half()
-    return tokens, labels, img, data["pre_image"]
+    return tokens, labels, img, data["pre_image"], data["is_covid"]
 
 
 from torch.nn import CrossEntropyLoss
@@ -90,13 +90,21 @@ if __name__ == "__main__":
     )
     for sub_model_name in model.mixins:
         print(sub_model_name)
-        if sub_model_name in ["adapter", "ptuning", "lora"]:
+        if sub_model_name in ["adapter", "ptuning", "lora", "fusion_model.embedding"]:
             continue
-        model.mixins[sub_model_name].load_state_dict(
-            torch.load(
-                f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/{sub_model_name}.ckpt"
+        elif sub_model_name == "eva":
+            model.mixins[sub_model_name].model.load_state_dict(
+                torch.load(
+                    f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/{sub_model_name}.ckpt"
+                )
             )
-        )
+            pass
+        else:
+            model.mixins[sub_model_name].load_state_dict(
+                torch.load(
+                    f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/{sub_model_name}.ckpt"
+                )
+            )
     model.transformer.load_state_dict(
         torch.load(
             f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/chatglm-6b.ckpt"
@@ -120,6 +128,7 @@ if __name__ == "__main__":
             "labels": torch.stack([example["labels"] for example in examples]),
             "image": torch.stack([example["image"] for example in examples]),
             "pre_image": example["pre_image"],
+            "is_covid": example["is_covid"],
         }
         return ret
 
