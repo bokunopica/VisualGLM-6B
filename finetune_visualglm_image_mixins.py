@@ -75,7 +75,6 @@ if __name__ == "__main__":
     py_parser.add_argument("--ignore_pad_token_for_loss", type=bool, default=True)
     # py_parser.add_argument('--old_checkpoint', action="store_true")
     py_parser.add_argument("--source_prefix", type=str, default="")
-    py_parser.add_argument("--use_classification_info", action="store_true")
     py_parser = FineTuneVisualGLMModel.add_model_specific_args(py_parser)
     known, args_list = py_parser.parse_known_args()
     args = get_args(args_list)
@@ -100,20 +99,6 @@ if __name__ == "__main__":
             f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/chatglm-6b.ckpt"
         )
     )
-
-    ####### freeze the model and unfreeze the image mixins #######
-    # [_.requires_grad_(False) for _ in model.parameters()]
-    # [_.requires_grad_(True) for _ in model.mixins.eva.parameters()]
-    # for name, param in model.mixins.eva.state_dict().items():
-    #     param.requires_grad_(True)
-    #     print(name, param.requires_grad)
-
-    # for name, param in model.mixins.eva.state_dict().items():
-    #     print(name, param.requires_grad)
-    # # model.mixins.eva.requires_grad_(True)
-    # # model.eval()
-    # # model.mixins.eva.parameters().requires_grad_(True)
-    ##############################################################
 
     if torch.cuda.is_available():
         model = model.to("cuda")

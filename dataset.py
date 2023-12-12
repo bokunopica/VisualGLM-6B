@@ -81,8 +81,13 @@ class CovCTRDataset(Dataset):
             )
             input0 = tokenizer.encode("<img>", add_special_tokens=False)
             input1 = [tokenizer.pad_token_id] * args.image_length
+            ## cls_fusion
+            disease_prompt = ""
+            if "cls_fusion" in args:
+                if item.get('is_covid', 0):
+                    disease_prompt = "该患者患有肺炎。"
             input2 = tokenizer.encode(
-                "</img>问：" + item["prompt"] + "\n答：", add_special_tokens=False
+                "</img>问：" + disease_prompt + item["prompt"] + "\n答：", add_special_tokens=False
             )
             a_ids = sum([input0, input1, input2], [])
             b_ids = tokenizer.encode(text=item["label"], add_special_tokens=False)
