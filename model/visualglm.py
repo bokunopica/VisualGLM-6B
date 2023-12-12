@@ -24,29 +24,27 @@ class ImageMixin(BaseMixin):
             args.eva_args, 
             args.qformer_args,
         )
-        # print('-----------------')
-        # if args.use_classification_info:
-        #     self.use_classification_info = True
-        #     # TODO add classifier
-        #     # self.classifier = 
-        # else:
-        #     self.use_classification_info = False
-        # print('-----------------')
+        if args.cls_fusion:
+            self.cls_fusion = True
+            # TODO add classifier
+            # self.classifier = 
+        else:
+            self.cls_fusion = False
             
 
     def word_embedding_forward(self, input_ids, output_cross_layer, **kw_args):
         if kw_args["pre_image"] > input_ids.shape[1] or kw_args.get("image", None) is None:
             return self.transformer.word_embeddings(input_ids)
         image_emb = self.model(**kw_args)
-        # TODO add classification embedding 疾病分类-COV-CTR
-
         # the image is inserted after 问：<img>, override 32 pads
         pre_id, pads, post_id = torch.tensor_split(input_ids, [kw_args["pre_image"], kw_args["pre_image"]+self.args.image_length], dim=1)
         pre_txt_emb = self.transformer.word_embeddings(pre_id)
         post_txt_emb = self.transformer.word_embeddings(post_id)
-        # if self.use_classification_info:
+        
+        # if self.cls_fusion:
         #     # TODO classification tag fusion
-        #     classification_tag_emb = kw_args['classification_tag_emb']
+        #     # TODO add classification embedding 疾病分类-COV-CTR
+        #     classification_tag_emb = self.transformer.word_embeddings(kw_args['cls_tag_emb'])
         #     return torch.cat([pre_txt_emb, image_emb, classification_tag_emb, post_txt_emb], dim=1)
         # else:
         return torch.cat([pre_txt_emb, image_emb, post_txt_emb], dim=1)
