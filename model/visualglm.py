@@ -13,6 +13,29 @@ from sat.resources.urls import MODEL_URLS
 
 MODEL_URLS['visualglm-6b'] = 'r2://visualglm-6b.zip'
 
+# class LabelEmbedder(nn.Module):
+#     def __init__(self, emb_dim=32, num_classes=2, act_name=("SWISH", {})):
+#         super().__init__()
+#         self.emb_dim = emb_dim
+#         self.embedding = nn.Embedding(num_classes, emb_dim)
+
+#     def forward(self, condition):
+#         c = self.embedding(condition) #[B,] -> [B, C]
+#         return c
+    
+
+class FusionModel(nn.Module):
+    def __init__(self, emb_dim=4096, num_classes=2):
+        super().__init__()
+        self.emb_dim = emb_dim
+        self.embedding = nn.Embedding(num_classes, emb_dim)
+
+    def forward(self, condition, image_emb):
+        print('wwwwwwwwwwwwwwwwwww')
+        cond_emb = self.embedding(condition)
+        return cond_emb + image_emb
+
+
 class ImageMixin(BaseMixin):
     def __init__(self, args):
         super().__init__()
@@ -24,8 +47,10 @@ class ImageMixin(BaseMixin):
             args.eva_args, 
             args.qformer_args,
         )
-        if args.cls_fusion:
-            self.cls_fusion = True
+        if "cls_fusion" in args and args.cls_fusion:
+            self.cls_fusion = False
+            # TODO fusion model
+            self.fusion_model = FusionModel(emb_dim=4096, num_classes=2)
             # TODO add classifier
             # self.classifier = 
         else:
@@ -41,13 +66,13 @@ class ImageMixin(BaseMixin):
         pre_txt_emb = self.transformer.word_embeddings(pre_id)
         post_txt_emb = self.transformer.word_embeddings(post_id)
         
-        # if self.cls_fusion:
-        #     # TODO classification tag fusion
-        #     # TODO add classification embedding 疾病分类-COV-CTR
-        #     classification_tag_emb = self.transformer.word_embeddings(kw_args['cls_tag_emb'])
-        #     return torch.cat([pre_txt_emb, image_emb, classification_tag_emb, post_txt_emb], dim=1)
-        # else:
+        if self.cls_fusion:
+            # TODO classification tag fusion
+            # TODO add classification embedding 疾病分类-COV-CTR
+            condition = kw_args['is_covid']
+            image_emb = self.fusion_model(condition, image_emb)
         return torch.cat([pre_txt_emb, image_emb, post_txt_emb], dim=1)
+
 
 class VisualGLMModel(ChatGLMModel):
     def __init__(self, args, transformer=None, **kwargs):
@@ -63,8 +88,6 @@ class VisualGLMModel(ChatGLMModel):
         group.add_argument('--qformer_args', type=json.loads, default={})
         return super().add_model_specific_args(parser)
     
-
-
 
 class AdjustAdapterMixin(AdapterMixin):
     @non_conflict
