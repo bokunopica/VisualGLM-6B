@@ -115,13 +115,11 @@ if __name__ == "__main__":
         for example in examples:
             example["input_ids"] = torch.tensor(example["input_ids"], dtype=torch.long)
             example["labels"] = torch.tensor(example["labels"], dtype=torch.long)
-            example["is_covid"] = torch.tensor(example["is_covid"], dtype=torch.long)
         ret = {
             "input_ids": torch.stack([example["input_ids"] for example in examples]),
             "labels": torch.stack([example["labels"] for example in examples]),
             "image": torch.stack([example["image"] for example in examples]),
             "pre_image": example["pre_image"],
-            "is_covid": torch.stack([example["is_covid"] for example in examples]),
         }
         return ret
 
