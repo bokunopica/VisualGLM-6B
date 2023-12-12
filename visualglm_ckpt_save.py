@@ -282,18 +282,22 @@ if __name__ == "__main__":
     args.quant = None
     args.ckpt_path = "/home/qianq/mycodes/VisualGLM-6B/checkpoints/COV-CTR/finetune-visualglm-6b-qformer"
     model, model_args = FineTuneVisualGLMModel.from_pretrained(
-        args.ckpt_path,
+        model_type,
         args=argparse.Namespace(
             fp16=True,
             skip_init=True,
             use_gpu_initialization=True if (torch.cuda.is_available() and args.quant is None) else False,
             device='cuda' if (torch.cuda.is_available() and args.quant is None) else 'cpu',
+            use_ptuning=False,
+            use_lora=False,
+            use_qlora=False,
+            use_adapter=False,
         )
     )
     for sub_model_name in model.mixins:
         print(sub_model_name)
-        torch.save(model.mixins[sub_model_name].state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin-qformer-cov/{sub_model_name}.ckpt')
-    torch.save(model.transformer.state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin-qformer-cov/chatglm.ckpt')
+        # torch.save(model.mixins[sub_model_name].state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin-qformer-cov/{sub_model_name}.ckpt')
+    # torch.save(model.transformer.state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin-qformer-cov/chatglm.ckpt')
 
     
     # if torch.cuda.is_available():
@@ -321,4 +325,11 @@ if __name__ == "__main__":
     #     forward_step_function=forward_step,
     #     create_dataset_function=create_dataset_function,
     #     collate_fn=data_collator,
+    # )
+
+    ## ImageMixins Save
+    # eva = model.mixins['eva']
+    # torch.save(
+    #     eva.model.state_dict(), 
+    #     f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/eva.model.ckpt'
     # )
