@@ -25,14 +25,15 @@ MODEL_URLS['visualglm-6b'] = 'r2://visualglm-6b.zip'
     
 
 class FusionModel(nn.Module):
-    def __init__(self, emb_dim=4096, num_classes=2):
+    def __init__(self, emb_dim=4096, num_classes=2, nhead=8):
         super().__init__()
         self.emb_dim = emb_dim
         self.embedding = nn.Embedding(num_classes, emb_dim)
+        self.transformer_encoder = nn.TransformerEncoderLayer(emb_dim, nhead, emb_dim, activation='relu')
 
     def forward(self, condition, image_emb):
         cond_emb = self.embedding(condition)
-        return cond_emb + image_emb
+        return self.transformer_encoder(cond_emb + image_emb)
 
 
 class ImageMixin(BaseMixin):
@@ -46,7 +47,7 @@ class ImageMixin(BaseMixin):
             args.eva_args, 
             args.qformer_args,
         )
-        if args.cls_fusion:
+        if "cls_fusion" in args and args.cls_fusion:
             self.cls_fusion = False
             # TODO fusion model
             self.fusion_model = FusionModel(emb_dim=4096, num_classes=2)
@@ -231,7 +232,7 @@ class FineTuneVisualGLMModel(VisualGLMModel):
             elif self.args.train_vit_transformer and n.startswith("mixins.eva.model.vit.transformer.layers."):
                 # Vit unfreeze
                 _n = n.replace("mixins.eva.model.vit.transformer.layers.", "")
-                _n = _n.split('.')[0]
+                _n = _n.split('.')[0] # _n is the index of layer
                 if _n in train_vit_transformers:
                     flag = True
             else:
