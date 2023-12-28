@@ -117,7 +117,7 @@ class CovCTRDataset(Dataset):
             self.images.append(image)
             self.input_ids.append(input_ids)
             self.labels.append(labels)
-            self.covid_labels.append(item["is_covid"])
+            self.covid_labels.append([item["is_covid"]])
         self.pre_image = pre_image
 
     def __len__(self):

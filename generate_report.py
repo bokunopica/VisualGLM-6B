@@ -67,6 +67,7 @@ def get_result(image_path, prompt=None, use_covid_tag=False, is_covid=None) -> s
             top_k=top_k,
             temperature=temperature,
             english=False,
+            is_covid=is_covid,
         )
     return answer # answer str
 
@@ -115,7 +116,7 @@ def main(args):
             image_path, 
             prompt=single_data['prompt'], 
             use_covid_tag=args.use_covid_tag,
-            is_covid=single_data['is_covid']
+            is_covid=torch.LongTensor([single_data['is_covid']]).cuda()
         )
         single_data['generated'] = generate_report
         f.write(json.dumps(single_data, ensure_ascii=False))

@@ -10,8 +10,9 @@ from dataset import CovCTRDataset, MimicXrayDataset, FewShotDataset
 
 def get_batch(data_iterator, args, timers):
     # Items and their type.
-    keys = ["input_ids", "labels"]
-    # keys = ["input_ids", "labels", "is_covid"]
+    
+    # keys = ["input_ids", "labels"]
+    keys = ["input_ids", "labels", "is_covid"]
     datatype = torch.int64
 
     # Broadcast data.
@@ -27,11 +28,11 @@ def get_batch(data_iterator, args, timers):
     # Unpack.
     tokens = data_b["input_ids"].long()
     labels = data_b["labels"].long()
-    # is_covid = data_b["is_covid"].long()
+    is_covid = data_b["is_covid"].long()
     img = data_i["image"]
     if args.fp16:
         img = img.half()
-    return tokens, labels, img, data["pre_image"], data["is_covid"]
+    return tokens, labels, img, data["pre_image"], is_covid
 
 
 from torch.nn import CrossEntropyLoss
@@ -93,9 +94,8 @@ if __name__ == "__main__":
             continue
         elif sub_model_name == "eva":
             model.mixins[sub_model_name].model.load_state_dict(
-                torch.load(
-                    f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/eva.model.ckpt"
-                )
+                torch.load(f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/eva.model.ckpt"), 
+                strict=False, # Fusion Model params 
             )
         else:
             model.mixins[sub_model_name].load_state_dict(
@@ -121,12 +121,13 @@ if __name__ == "__main__":
         for example in examples:
             example["input_ids"] = torch.tensor(example["input_ids"], dtype=torch.long)
             example["labels"] = torch.tensor(example["labels"], dtype=torch.long)
+            example["is_covid"] = torch.tensor(example["is_covid"], dtype=torch.long)
         ret = {
             "input_ids": torch.stack([example["input_ids"] for example in examples]),
             "labels": torch.stack([example["labels"] for example in examples]),
             "image": torch.stack([example["image"] for example in examples]),
             "pre_image": example["pre_image"],
-            "is_covid": example["is_covid"],
+            "is_covid": torch.stack([example["is_covid"] for example in examples]),
         }
         return ret
 

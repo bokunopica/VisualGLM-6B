@@ -95,7 +95,7 @@ def process_image(text, image=None):
 def chat(image_path, model, tokenizer, 
         query: str, history: List[Tuple[str, str]] = None, image: Image = None,
         max_length: int = 1024, top_p=0.7, top_k=30, temperature=0.95, repetition_penalty=1.2,
-        invalid_slices=[], english=False
+        invalid_slices=[], english=False, **kwargs
         ):
     if not history:
         history = []
@@ -147,6 +147,7 @@ def chat(image_path, model, tokenizer,
         strategy=strategy,
         pre_image=pre_image,
         image=torch_image,
+        is_covid=kwargs.get('is_covid', None)
     )[0] # drop memory
     
     # ---------------

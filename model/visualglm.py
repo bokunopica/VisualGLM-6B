@@ -24,16 +24,34 @@ MODEL_URLS['visualglm-6b'] = 'r2://visualglm-6b.zip'
 #         return c
     
 
-class FusionModel(nn.Module):
-    def __init__(self, emb_dim=4096, num_classes=2, nhead=8):
-        super().__init__()
-        self.emb_dim = emb_dim
-        self.embedding = nn.Embedding(num_classes, emb_dim)
-        self.transformer_encoder = nn.TransformerEncoderLayer(emb_dim, nhead, emb_dim, activation='relu')
+# class FusionModel(nn.Module):
+#     def __init__(self, cond_emb_dim=256, image_emb_dim=768, num_classes=2, nhead=8, proj_output_dim=768):
+#         super().__init__()
+#         self.cond_emb_dim = cond_emb_dim
+#         self.image_emb_dim = image_emb_dim
+#         self.emb_dim = self.cond_emb_dim + self.image_emb_dim
+#         self.cond_embedding_model = nn.Embedding(num_classes, self.cond_emb_dim)
+#         self.transformer_encoder = nn.TransformerEncoderLayer(
+#             self.cond_emb_dim + self.image_emb_dim, 
+#             nhead, 
+#             self.emb_dim, 
+#             activation='relu'
+#         )
+#         self.proj_output_dim = proj_output_dim
+#         self.proj = nn.Linear(self.emb_dim, self.proj_output_dim)
 
-    def forward(self, condition, image_emb):
-        cond_emb = self.embedding(condition)
-        return self.transformer_encoder(cond_emb + image_emb)
+#     def forward(self, condition, image_emb):
+#         print('------------Fusion Forward----------------')
+#         cond_emb = self.cond_embedding_model(condition)
+#         emb = torch.concat([cond_emb, image_emb], dim=1)
+#         tf_emb = self.transformer_encoder(emb)
+#         out = self.proj(tf_emb)
+#         print('cond_emb', cond_emb.shape)
+#         print('emb', emb.shape)
+#         print('tf_emb', tf_emb.shape)
+#         print('out', out.shape)
+#         print('------------Fusion Forward----------------')
+#         return out
 
 
 class ImageMixin(BaseMixin):
@@ -43,19 +61,12 @@ class ImageMixin(BaseMixin):
         if hasattr(args, 'model_parallel_size'):
             args.eva_args['model_parallel_size'] = args.model_parallel_size
             args.qformer_args['model_parallel_size'] = args.model_parallel_size
+        
         self.model = BLIP2(
             args.eva_args, 
             args.qformer_args,
+            cls_fusion=args.cls_fusion if "cls_fusion" in args else None
         )
-        if "cls_fusion" in args and args.cls_fusion:
-            self.cls_fusion = False
-            # TODO fusion model
-            self.fusion_model = FusionModel(emb_dim=4096, num_classes=2)
-            # TODO add classifier
-            # self.classifier = 
-        else:
-            self.cls_fusion = False
-            
 
     def word_embedding_forward(self, input_ids, output_cross_layer, **kw_args):
         if kw_args["pre_image"] > input_ids.shape[1] or kw_args.get("image", None) is None:
@@ -65,12 +76,6 @@ class ImageMixin(BaseMixin):
         pre_id, pads, post_id = torch.tensor_split(input_ids, [kw_args["pre_image"], kw_args["pre_image"]+self.args.image_length], dim=1)
         pre_txt_emb = self.transformer.word_embeddings(pre_id)
         post_txt_emb = self.transformer.word_embeddings(post_id)
-        
-        if self.cls_fusion:
-            # TODO classification tag fusion
-            # TODO add classification embedding 疾病分类-COV-CTR
-            condition = kw_args['is_covid']
-            image_emb = self.fusion_model(condition, image_emb)
         return torch.cat([pre_txt_emb, image_emb, post_txt_emb], dim=1)
 
 
