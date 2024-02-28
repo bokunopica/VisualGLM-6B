@@ -62,7 +62,7 @@ def meteor_score(raw_splits, generate_splits):
     return result
 
 
-def calc_metrics(reports):
+def calc_nlg_metrics(reports):
     bleu1_metric = AverageMeter()
     bleu2_metric = AverageMeter()
     bleu3_metric = AverageMeter()
@@ -89,12 +89,19 @@ def calc_metrics(reports):
     print('BLEU@4 :%f' % bleu4_metric.avg)
     print('METEOR :%f' % meteor_metric.avg)
 
+def calc_clinical_efficacy(reports):
+    for report in reports:
+        raw = report['label']
+        generated = report['generated']
+        label = report['is_covid']
+        print(report)
+
 
 if __name__ == "__main__":
     seed = 1919810
-    base_path = "/home/qianq/mycodes/VisualGLM-6B/reports/COV-CTR"
-    file_name = "finetune-visualglm-6b-qformer+cls_fusion.jsonl"
+    base_path = "/home/qianq/mycodes/VisualGLM-6B/reports/COV-CTR-30k"
+    file_name = "finetune-visualglm-6b-qformer.jsonl"
     reports_path = f"{base_path}-seed{seed}/{file_name}"
     reports = read_reports(reports_path)
-    calc_metrics(reports)
-    
+    # calc_nlg_metrics(reports)
+    calc_clinical_efficacy(reports)

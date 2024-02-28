@@ -280,7 +280,7 @@ if __name__ == "__main__":
     model_type = "visualglm-6b"
     # model, args = FineTuneVisualGLMModel.from_pretrained(model_type, args)
     args.quant = None
-    args.ckpt_path = "/home/qianq/mycodes/VisualGLM-6B/checkpoints/COV-CTR/finetune-visualglm-6b-qformer"
+    # args.ckpt_path = "/home/qianq/mycodes/VisualGLM-6B/checkpoints/COV-CTR/finetune-visualglm-6b-qformer"
     model, model_args = FineTuneVisualGLMModel.from_pretrained(
         model_type,
         args=argparse.Namespace(
@@ -294,10 +294,11 @@ if __name__ == "__main__":
             use_adapter=False,
         )
     )
-    for sub_model_name in model.mixins:
-        print(sub_model_name)
+    # for sub_model_name in model.mixins.eva.model.vit():
+        # print(sub_model_name)
+    
         # torch.save(model.mixins[sub_model_name].state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin-qformer-cov/{sub_model_name}.ckpt')
-    # torch.save(model.transformer.state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin-qformer-cov/chatglm.ckpt')
+    torch.save( model.mixins.eva.model.vit.state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/vit.ckpt')
 
     
     # if torch.cuda.is_available():
