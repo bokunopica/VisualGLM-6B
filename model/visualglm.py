@@ -63,9 +63,9 @@ class ImageMixin(BaseMixin):
             args.qformer_args['model_parallel_size'] = args.model_parallel_size
         
         self.model = BLIP2(
-            args.eva_args, 
+            args.eva_args,
             args.qformer_args,
-            cls_fusion=args.cls_fusion if "cls_fusion" in args else None
+            cls_fusion=args.cls_fusion if "cls_fusion" in args else None,
         )
 
     def word_embedding_forward(self, input_ids, output_cross_layer, **kw_args):

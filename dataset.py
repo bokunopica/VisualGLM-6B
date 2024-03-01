@@ -78,6 +78,7 @@ class CovCTRDataset(Dataset):
         self.input_ids = []
         self.labels = []
         self.covid_labels = []
+        self.covid_one_hot_labels = []
         for i in trange(len(data)):
             item = data[i]
             img_filename = item["img"].split("/")[-1]
@@ -118,6 +119,7 @@ class CovCTRDataset(Dataset):
             self.input_ids.append(input_ids)
             self.labels.append(labels)
             self.covid_labels.append([item["is_covid"]])
+            self.covid_one_hot_labels.append(([0, 1] if item["is_covid"] else [1, 0]))
         self.pre_image = pre_image
 
     def __len__(self):
@@ -130,6 +132,7 @@ class CovCTRDataset(Dataset):
             "labels": self.labels[idx],
             "pre_image": self.pre_image,
             "is_covid": self.covid_labels[idx],
+            "is_covid_one_hot": self.covid_one_hot_labels[idx]
         }
 
 

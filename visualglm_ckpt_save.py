@@ -298,7 +298,8 @@ if __name__ == "__main__":
         # print(sub_model_name)
     
         # torch.save(model.mixins[sub_model_name].state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin-qformer-cov/{sub_model_name}.ckpt')
-    torch.save( model.mixins.eva.model.vit.state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/vit.ckpt')
+    # print(model.mixins.eva.model.vit)
+    # torch.save( model.mixins.eva.model.vit.state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/vit.ckpt')
 
     
     # if torch.cuda.is_available():
