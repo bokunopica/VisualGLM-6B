@@ -1,86 +1,30 @@
 import torch
 import argparse
-from sat import mpu, get_args, get_tokenizer
-from sat.training.deepspeed_training import training_main
-from model.visualglm import FineTuneVisualGLMModel
 from transformers import AutoTokenizer
 from dataset import CovCTRDataset
 
 from model.vit_classifier import PneumoniaClassifier
 from model.blip2 import BlipImageEvalProcessor
-from tqdm import trange
-import torch.nn.functional as F
+from torch.utils.data import DataLoader
 
 
-def get_batch(data_iterator, args, timers):
-    # Items and their type.
-    keys = ["is_covid_one_hot"]
-    datatype = torch.int64
-    # Broadcast data.
-    timers("data loader").start()
-    if data_iterator is not None:
-        data = next(data_iterator)
-    else:
-        data = None
-    timers("data loader").stop()
-    data_b = mpu.broadcast_data(keys, data, datatype)
-    data_i = mpu.broadcast_data(["image"], data, torch.float32)
-    # Unpack.
-    # tokens = data_b["input_ids"].long()
-    # labels = data_b["labels"].long()
-    is_covid_one_hot = data_b["is_covid_one_hot"].long()
-    # is_covid = torch.nn.functional.one_hot(is_covid, num_classes=2)
-    img = data_i["image"]
-    if args.fp16:
-        img = img.half()
-    return img, is_covid_one_hot
+class AverageMeter:
+    ''' Computes and stores the average and current value '''
+    def __init__(self) -> None:
+        self.reset()
 
+    def reset(self) -> None:
+        self.val = 0.0
+        self.avg = 0.0
+        self.sum = 0.0
+        self.count = 0
 
-from torch.nn import CrossEntropyLoss
+    def update(self, val: float, n: int = 1) -> None:
+        self.val = val
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count
 
-
-def forward_step(data_iterator, model, args, timers):
-    """Forward step."""
-
-    # Get the batch.
-    timers("batch generator").start()
-    image, is_covid_one_hot = get_batch(data_iterator, args, timers)
-
-    timers("batch generator").stop()
-    logits = model(image=image)
-    # dtype = logits.dtype
-    # lm_logits = logits.to(torch.float32)
-
-    # # Shift so that tokens < n predict n
-    # shift_logits = lm_logits[..., :-1, :].contiguous()
-    # shift_labels = labels[..., 1:].contiguous()
-
-    # # Flatten the tokens
-    # loss_fct = CrossEntropyLoss()
-    # loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
-
-    # lm_logits = lm_logits.to(dtype)
-    # loss = loss.to(dtype)
-    dtype = logits.dtype
-    cmp_logits = logits.to(torch.float32)
-    is_covid_one_hot = is_covid_one_hot.to(torch.float32)
-
-    # Flatten the tokens
-    loss_fct = CrossEntropyLoss()
-    loss = loss_fct(cmp_logits, is_covid_one_hot)
-
-    cmp_logits = cmp_logits.to(dtype)
-    loss = loss.to(dtype)
-    return loss, {"loss": loss}
-
-
-def create_dataset_function(path, args):
-    tokenizer = AutoTokenizer.from_pretrained(
-        "/home/qianq/model/chatglm-6b", trust_remote_code=True
-    )
-    image_processor = BlipImageEvalProcessor(224)
-    dataset = CovCTRDataset(path, image_processor, tokenizer, args)
-    return dataset
 
 
 if __name__ == "__main__":
@@ -256,22 +200,34 @@ if __name__ == "__main__":
             "patch_size": 14,
         }
     )
-    # vit冻结
-    model.vit.requires_grad_(False)
+    ckpt_path = 'checkpoints/clf/finetune-classifier-03-01-21-04/12000/mp_rank_00_model_states.pt'
+    # 冻结
+    model = torch.nn.DataParallel(model)
+    params = torch.load(ckpt_path)
+    # print(list(params.keys()))
+    model.load_state_dict(params)
+    # for item in model.named_children():
+    #     print(item)
+    # model.requires_grad_(False)
 
-    if torch.cuda.is_available():
-        model = model.to("cuda")
+    # tokenizer = AutoTokenizer.from_pretrained(
+    #     "/home/qianq/model/chatglm-6b", trust_remote_code=True
+    # )
 
+    # path = '/home/qianq/data/COV-CTR/eval.json'
+    # image_processor = BlipImageEvalProcessor(224)
+    # dataset = CovCTRDataset(path, image_processor, tokenizer, args)
+    # dataloader = DataLoader(dataset, batch_size=146) # 一个批次包含了全部数据
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # model = model.to(device)
+    # accuracy_metrics = AverageMeter()
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        "/home/qianq/model/chatglm-6b", trust_remote_code=True
-    )
-
-    path = '/home/qianq/data/COV-CTR/eval.json'
-    image_processor = BlipImageEvalProcessor(224)
-    dataset = CovCTRDataset(path, image_processor, tokenizer, args)
-
-    for i in range(len(dataset)):
-        dataset[i]
-
-    print(len(dataset))
+    # for item in dataloader:
+    #     is_covid = item['is_covid'][0].to(device)
+    #     image = item['image'].to(device)
+    #     output_logits = model(image)
+    #     calculated_labels = output_logits.argmax(dim=1)
+    #     result_tensor = calculated_labels.eq(is_covid)
+    #     print(result_tensor)
+    #     print(result_tensor.sum())
+    #     print(len(result_tensor))

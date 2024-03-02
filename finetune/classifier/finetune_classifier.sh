@@ -6,7 +6,7 @@ MP_SIZE=1
 script_path=$(realpath $0)
 script_dir=$(dirname $script_path)
 main_dir=$(dirname $script_dir)
-MODEL_TYPE="eva-vit-classifier"
+MODEL_TYPE="classifier"
 MODEL_ARGS="--max_source_length 64 \
     --max_target_length 256"
 
@@ -30,7 +30,7 @@ gpt_options=" \
        --experiment-name finetune-$MODEL_TYPE \
        --model-parallel-size ${MP_SIZE} \
        --mode finetune \
-       --train-iters 3000 \
+       --train-iters 12000 \
        --resume-dataloader \
        $MODEL_ARGS \
        --train-data ${train_data} \
@@ -39,15 +39,15 @@ gpt_options=" \
        --lr-decay-style cosine \
        --warmup .02 \
        --checkpoint-activations \
-       --save-interval 3000 \
+       --save-interval 12000 \
        --eval-interval 100 \
        --save "./checkpoints" \
        --split 1 \
        --eval-iters 10 \
        --eval-batch-size 64 \
        --zero-stage 1 \
-       --lr 0.0001 \
-       --batch-size 64 \
+       --lr 0.0005 \
+       --batch-size 16 \
        --skip-init \
        --fp16 \
        --train_qformer

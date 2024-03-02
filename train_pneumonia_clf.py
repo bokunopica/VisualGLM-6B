@@ -75,6 +75,12 @@ def forward_step(data_iterator, model, args, timers):
     return loss, {"loss": loss}
 
 
+def create_dataset_function(path, args):
+    tokenizer = AutoTokenizer.from_pretrained("/home/qianq/model/chatglm-6b", trust_remote_code=True)
+    image_processor = BlipImageEvalProcessor(224)
+    dataset = CovCTRDataset(path, image_processor, tokenizer, args)
+    return dataset
+
 
 if __name__ == "__main__":
     py_parser = argparse.ArgumentParser(add_help=False)
@@ -96,6 +102,7 @@ if __name__ == "__main__":
     
 
     model = PneumoniaClassifier(
+        args=args,
         eva_args={
             "num_layers": 39,
             "hidden_size": 1408,
@@ -134,5 +141,6 @@ if __name__ == "__main__":
         args,
         model_cls=model,
         forward_step_function=forward_step,
+        create_dataset_function=create_dataset_function,
         collate_fn=data_collator,
     )

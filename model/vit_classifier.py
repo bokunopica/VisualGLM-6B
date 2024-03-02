@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from sat.model import ViTModel
-from sat.model import BaseMixin
+from sat.model import BaseMixin, BaseModel
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
 
@@ -27,9 +27,9 @@ class EVAViT(ViTModel):
         return super().forward(input_ids=input_ids, position_ids=None, attention_mask=attention_mask, image=image)
 
 
-class PneumoniaClassifier(torch.nn.Module):
-    def __init__(self, eva_args, **kwargs):
-        super().__init__()
+class PneumoniaClassifier(BaseModel):
+    def __init__(self, args, eva_args, **kwargs):
+        super().__init__(args=args)
         self.vit = EVAViT(EVAViT.get_args(**eva_args))
         self.mlp_1 = nn.Linear(1408, 176)
         self.mlp_2 = nn.Linear(176, 16)
