@@ -1,31 +1,6 @@
 import torch
 import argparse
-from transformers import AutoTokenizer
-from dataset import CovCTRDataset
-
 from model.vit_classifier import PneumoniaClassifier
-from model.blip2 import BlipImageEvalProcessor
-from torch.utils.data import DataLoader
-import time
-
-
-class AverageMeter:
-    ''' Computes and stores the average and current value '''
-    def __init__(self) -> None:
-        self.reset()
-
-    def reset(self) -> None:
-        self.val = 0.0
-        self.avg = 0.0
-        self.sum = 0.0
-        self.count = 0
-
-    def update(self, val: float, n: int = 1) -> None:
-        self.val = val
-        self.sum += val * n
-        self.count += n
-        self.avg = self.sum / self.count
-
 
 
 if __name__ == "__main__":
@@ -210,28 +185,24 @@ if __name__ == "__main__":
             device='cuda' if (torch.cuda.is_available() and args.quant is None) else 'cpu',
         )
     )
-    # 冻结
-    tokenizer = AutoTokenizer.from_pretrained(
-        "/home/qianq/model/chatglm-6b", trust_remote_code=True
-    )
     model.requires_grad_(False)
+    # mlp_list = [
+    #     'mlp_1',
+    #     'mlp_2',
+    #     'mlp_3',
+    #     'mlp_4',
+    #     'mlp_5',
+    # ]
+    for sub_model_name, obj in model.named_children():
+        if sub_model_name.startswith('mlp_'):
+            print(sub_model_name)
+            torch.save(
+                obj.state_dict(), 
+                f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/clf-mlp/{sub_model_name}.ckpt'
+            )
 
-    
-    path = '/home/qianq/data/COV-CTR/eval.json'
-    image_processor = BlipImageEvalProcessor(224)
-    dataset = CovCTRDataset(path, image_processor, tokenizer, args)
-    dataloader = DataLoader(dataset, batch_size=146)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    accuracy_metrics = AverageMeter()
 
-    for item in dataloader:
-        is_covid = item['is_covid'][0].to(device)
-        image = item['image'].to(device)
-        output_logits = model(image)
-        calculated_labels = output_logits.argmax(dim=1)
-        result_tensor = calculated_labels.eq(is_covid)
-        _sum = int(result_tensor.sum())
-        _cnt = len(result_tensor)
-        accuracy_metrics.update(_sum/_cnt, n=_cnt)
-
-    print('final_acc: ', accuracy_metrics.avg)
+    # torch.save(
+    #     eva.model.state_dict(), 
+    #     f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/eva.model.ckpt'
+    # )
