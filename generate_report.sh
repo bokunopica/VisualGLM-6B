@@ -1,6 +1,6 @@
-CKPT_NAME='finetune-visualglm-6b-qformer-label-hint'
-PREFIX='COV-CTR-30k'
-SEED=1919810
+CKPT_NAME='finetune-visualglm-6b-qformer'
+PREFIX='COV-CTR'
+SEED=1210
 CKPT_PATH="checkpoints/$PREFIX/$CKPT_NAME"
 REPORT_SAVE_PATH="reports/$PREFIX-seed$SEED/$CKPT_NAME.jsonl"
 

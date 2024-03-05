@@ -123,11 +123,7 @@ class BLIP2(torch.nn.Module):
         y = self.mlp_4(y) # 1024
         y = self.mlp_5(y) # 2
         y = self.activation(y)
-        res = y.argmax(dim=1)
-        print('------------------')
-        print(res)
-        print('------------------')
-        return res
+        return y.argmax(dim=1)
     
     
 class BlipImageBaseProcessor():

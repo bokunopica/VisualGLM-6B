@@ -89,6 +89,12 @@ def calc_nlg_metrics(reports):
     print('BLEU@4 :%f' % bleu4_metric.avg)
     print('METEOR :%f' % meteor_metric.avg)
 
+    print('%.2f' % (bleu1_metric.avg*100), '%')
+    print('%.2f' % (bleu2_metric.avg*100), '%')
+    print('%.2f' % (bleu3_metric.avg*100), '%')
+    print('%.2f' % (bleu4_metric.avg*100), '%')
+    print('%.2f' % (meteor_metric.avg*100), '%')
+
 def calc_clinical_efficacy(reports):
     for report in reports:
         raw = report['label']
@@ -98,9 +104,9 @@ def calc_clinical_efficacy(reports):
 
 
 if __name__ == "__main__":
-    seed = 1919810
-    base_path = "/home/qianq/mycodes/VisualGLM-6B/reports/COV-CTR-30k"
-    file_name = "finetune-visualglm-6b-qformer-label-hint.jsonl"
+    seed = 1210
+    base_path = "/home/qianq/mycodes/VisualGLM-6B/reports/COV-CTR"
+    file_name = "finetune-visualglm-6b-qformer.jsonl"
     reports_path = f"{base_path}-seed{seed}/{file_name}"
     reports = read_reports(reports_path)
     calc_nlg_metrics(reports)

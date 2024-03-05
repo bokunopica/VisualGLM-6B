@@ -30,7 +30,7 @@ gpt_options=" \
        --experiment-name finetune-$MODEL_TYPE \
        --model-parallel-size ${MP_SIZE} \
        --mode finetune \
-       --train-iters 30000 \
+       --train-iters 3000 \
        --resume-dataloader \
        $MODEL_ARGS \
        --train-data ${train_data} \
@@ -39,7 +39,7 @@ gpt_options=" \
        --lr-decay-style cosine \
        --warmup .02 \
        --checkpoint-activations \
-       --save-interval 10000 \
+       --save-interval 1000 \
        --eval-interval 100 \
        --save "./checkpoints" \
        --split 1 \
