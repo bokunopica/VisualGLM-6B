@@ -97,6 +97,12 @@ if __name__ == "__main__":
                 torch.load(f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/eva.model.ckpt"), 
                 strict=False, # Fusion Model params 
             )
+            for name, mod in model.mixins['eva'].model.named_children():
+                if name.startswith('mlp_'):
+                    # classifier mlp layers
+                    mod.load_state_dict(
+                        torch.load(f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/clf-mlp/{name}.ckpt")
+                    )
         else:
             model.mixins[sub_model_name].load_state_dict(
                 torch.load(
@@ -108,7 +114,6 @@ if __name__ == "__main__":
             f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/chatglm-6b.ckpt"
         )
     )
-
     if torch.cuda.is_available():
         model = model.to("cuda")
     # tokenizer = get_tokenizer(args)

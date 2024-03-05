@@ -33,7 +33,6 @@ class PneumoniaClassifier(BaseModel):
         self.vit = EVAViT(EVAViT.get_args(**eva_args))
         self.mlp_1 = nn.Linear(1408, 176)
         self.mlp_2 = nn.Linear(176, 16)
-        
         self.mlp_3 = nn.Linear(4112, 4096)
         self.mlp_4 = nn.Linear(4096, 1024)
         self.mlp_5 = nn.Linear(1024, 2)
@@ -56,13 +55,11 @@ class PneumoniaClassifier(BaseModel):
 #             mean = (0.48145466, 0.4578275, 0.40821073)
 #         if std is None:
 #             std = (0.26862954, 0.26130258, 0.27577711)
-
 #         self.normalize = transforms.Normalize(mean, std)
 
 # class CLFImageEvalProcessor(CLFImageBaseProcessor):
 #     def __init__(self, image_size=384, mean=None, std=None):
 #         super().__init__(mean=mean, std=std)
-
 #         self.transform = transforms.Compose(
 #             [
 #                 transforms.Resize(

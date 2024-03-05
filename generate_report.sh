@@ -1,4 +1,4 @@
-CKPT_NAME='finetune-visualglm-6b-qformer'
+CKPT_NAME='finetune-visualglm-6b-qformer-label-hint'
 PREFIX='COV-CTR-30k'
 SEED=1919810
 CKPT_PATH="checkpoints/$PREFIX/$CKPT_NAME"

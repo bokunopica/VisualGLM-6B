@@ -67,7 +67,6 @@ class FusionModel(nn.Module):
         cond_emb = self.cond_embedding_model(condition)
         img_emb_shape = image_emb.shape
         cond_emb =cond_emb.reshape((img_emb_shape[0], img_emb_shape[1], -1))
-
         emb = torch.concat([cond_emb, image_emb], dim=2)
         tf_emb = self.transformer_encoder(emb)
         out = self.proj(tf_emb)
@@ -86,6 +85,12 @@ class BLIP2(torch.nn.Module):
             self.qformer = QFormer(QFormer.get_args(**qformer_args))
 
         if cls_fusion:
+            self.mlp_1 = nn.Linear(1408, 176)
+            self.mlp_2 = nn.Linear(176, 16)
+            self.mlp_3 = nn.Linear(4112, 4096)
+            self.mlp_4 = nn.Linear(4096, 1024)
+            self.mlp_5 = nn.Linear(1024, 2)
+            self.activation = nn.ReLU()
             self.fusion_model = FusionModel(
                 cond_emb_dim=8,
                 image_emb_dim=768,
@@ -103,11 +108,26 @@ class BLIP2(torch.nn.Module):
         out = self.qformer(enc)[0]
         if self.fusion_model:
             # cls_fusion
-            out = self.fusion_model(condition = kwargs['is_covid'], image_emb=out)
+            is_covid = self.clf_forward(enc)
+            out = self.fusion_model(condition = is_covid, image_emb=out)
         # print(enc.shape) [1, 257, 1408]
         # print(out.shape) [1, 32, 768]
         # print(res.shape) [1, 32, 4096]
         return self.glm_proj(out)
+    
+    def clf_forward(self, enc):
+        y = self.mlp_1(enc) # [4, 257, 176]
+        y = self.mlp_2(y) # [4, 257, 16]
+        y = torch.flatten(y, start_dim=1) # [4, 4112]
+        y = self.mlp_3(y) # 4096
+        y = self.mlp_4(y) # 1024
+        y = self.mlp_5(y) # 2
+        y = self.activation(y)
+        res = y.argmax(dim=1)
+        print('------------------')
+        print(res)
+        print('------------------')
+        return res
     
     
 class BlipImageBaseProcessor():
