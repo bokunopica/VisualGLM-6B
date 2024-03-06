@@ -6,6 +6,8 @@ from model.blip2 import BlipImageEvalProcessor
 from model.visualglm import FineTuneVisualGLMModel
 from transformers import AutoTokenizer
 from dataset import CovCTRDataset, MimicXrayDataset, FewShotDataset
+import time
+import os
 
 
 
@@ -80,10 +82,13 @@ if __name__ == "__main__":
     args = get_args(args_list)
     args = argparse.Namespace(**vars(args), **vars(known))
     args.device = "cpu"
+    # args.use_gpu_initialization = True
+    # LOCAL_RANK = os.environ.get('LOCAL_RANK')
+    # args.device=f'cuda:{LOCAL_RANK}'
 
     model_type = "visualglm-6b"
     model, args = FineTuneVisualGLMModel.from_pretrained(
-        model_type, args, build_only=True
+        model_type, args, build_only=True,
     )
     for sub_model_name in model.mixins:
         print(sub_model_name)

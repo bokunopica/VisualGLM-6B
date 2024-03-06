@@ -286,7 +286,8 @@ if __name__ == "__main__":
         args=argparse.Namespace(
             fp16=True,
             skip_init=True,
-            use_gpu_initialization=True if (torch.cuda.is_available() and args.quant is None) else False,
+            # use_gpu_initialization=True if (torch.cuda.is_available() and args.quant is None) else False,
+            use_gpu_initialization=False,
             device='cuda' if (torch.cuda.is_available() and args.quant is None) else 'cpu',
             use_ptuning=False,
             use_lora=False,
@@ -306,6 +307,7 @@ if __name__ == "__main__":
         if sub_model_name in ["adapter", "ptuning", "lora"]:
             continue
         elif sub_model_name == "eva":
+            torch.save(model.mixins['eva'].state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/eva.ckpt')
             torch.save(model.mixins['eva'].model.state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin-qformer-cov/eva.model.ckpt')
             for name, mod in model.mixins['eva'].model.named_children():
                 break
@@ -316,7 +318,11 @@ if __name__ == "__main__":
                     )
         else:
             torch.save(model.mixins[sub_model_name].state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/{sub_model_name}.ckpt')
-    torch.save(model.transformer.state_dict(), f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/chatglm-6b.ckpt")
+    torch.save(
+        model.transformer.state_dict(), 
+        f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/chatglm-6b.ckpt", 
+    )
+    
     # if torch.cuda.is_available():
     #     model = model.to("cuda")
     # tokenizer = get_tokenizer(args)

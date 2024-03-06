@@ -35,7 +35,7 @@ gpt_options=" \
        --train-data ${train_data} \
        --valid-data ${eval_data} \
        --distributed-backend nccl \
-       --lr-decay-style cosine \
+       --lr-decay-style constant \
        --warmup .02 \
        --checkpoint-activations \
        --save-interval 100 \
