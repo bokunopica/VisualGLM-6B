@@ -294,14 +294,29 @@ if __name__ == "__main__":
             use_adapter=False,
         )
     )
-    # for sub_model_name in model.mixins.eva.model.vit():
-        # print(sub_model_name)
-    
-        # torch.save(model.mixins[sub_model_name].state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin-qformer-cov/{sub_model_name}.ckpt')
+    # for sub_model_name in model.mixins:
+    #     print(sub_model_name)
+    #     torch.save(model.mixins[sub_model_name].state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin-qformer-cov/{sub_model_name}.ckpt')
     # print(model.mixins.eva.model.vit)
     # torch.save( model.mixins.eva.model.vit.state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/vit.ckpt')
-
     
+    # eva.model
+    
+    for sub_model_name in model.mixins:
+        if sub_model_name in ["adapter", "ptuning", "lora"]:
+            continue
+        elif sub_model_name == "eva":
+            torch.save(model.mixins['eva'].model.state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin-qformer-cov/eva.model.ckpt')
+            for name, mod in model.mixins['eva'].model.named_children():
+                break
+                if name.startswith('mlp_'):
+                    # classifier mlp layers
+                    mod.load_state_dict(
+                        torch.load(f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/clf-mlp/{name}.ckpt")
+                    )
+        else:
+            torch.save(model.mixins[sub_model_name].state_dict(), f'/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/{sub_model_name}.ckpt')
+    torch.save(model.transformer.state_dict(), f"/home/qianq/mycodes/VisualGLM-6B/checkpoints/origin/chatglm-6b.ckpt")
     # if torch.cuda.is_available():
     #     model = model.to("cuda")
     # tokenizer = get_tokenizer(args)

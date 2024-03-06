@@ -1,3 +1,5 @@
+import sys
+sys.path.append('/home/qianq/mycodes/VisualGLM-6B')
 import torch
 import argparse
 from transformers import AutoTokenizer
@@ -181,7 +183,7 @@ if __name__ == "__main__":
         quant=None,
     )
     args.device = "cpu"
-    ckpt_path = 'checkpoints/clf/finetune-classifier-03-02-09-33'
+    ckpt_path = 'checkpoints/finetune-classifier-03-06-10-45'
     eva_args={
         "num_layers": 39,
         "hidden_size": 1408,

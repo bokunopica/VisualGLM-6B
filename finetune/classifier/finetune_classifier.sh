@@ -25,12 +25,11 @@ HOST_FILE_PATH="hostfile_single"
 train_data="/home/qianq/data/COV-CTR/train.json"
 eval_data="/home/qianq/data/COV-CTR/eval.json"
 
-
 gpt_options=" \
        --experiment-name finetune-$MODEL_TYPE \
        --model-parallel-size ${MP_SIZE} \
        --mode finetune \
-       --train-iters 12000 \
+       --train-iters 1000 \
        --resume-dataloader \
        $MODEL_ARGS \
        --train-data ${train_data} \
@@ -39,21 +38,19 @@ gpt_options=" \
        --lr-decay-style cosine \
        --warmup .02 \
        --checkpoint-activations \
-       --save-interval 12000 \
+       --save-interval 100 \
        --eval-interval 100 \
        --save "./checkpoints" \
        --split 1 \
        --eval-iters 10 \
        --eval-batch-size 64 \
        --zero-stage 1 \
-       --lr 0.0005 \
+       --lr 0.0001 \
        --batch-size 16 \
        --skip-init \
        --fp16 \
        --train_qformer
 "
-
-              
 
 run_cmd="${OPTIONS_DEVICE} ${OPTIONS_NCCL} ${OPTIONS_SAT} deepspeed --master_port 16666 --hostfile ${HOST_FILE_PATH} train_pneumonia_clf.py ${gpt_options}"
 echo ${run_cmd}

@@ -104,7 +104,7 @@ def calc_clinical_efficacy(reports):
 
 
 if __name__ == "__main__":
-    seed = 1210
+    seed = 1997
     base_path = "/home/qianq/mycodes/VisualGLM-6B/reports/COV-CTR"
     file_name = "finetune-visualglm-6b-qformer.jsonl"
     reports_path = f"{base_path}-seed{seed}/{file_name}"
