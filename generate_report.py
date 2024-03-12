@@ -121,10 +121,7 @@ def main(args):
         single_data['generated'] = generate_report
         f.write(json.dumps(single_data, ensure_ascii=False))
         f.write('\n')
-        # result_list.append(single_data)
     
-    # with open(args.report_save_path, 'w') as f:
-    #     f.write(json.dumps(result_list))
 
 if __name__ == "__main__":
     import argparse

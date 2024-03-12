@@ -40,14 +40,14 @@ gpt_options=" \
        --lr-decay-style constant \
        --warmup .02 \
        --checkpoint-activations \
-       --save-interval 2000 \
+       --save-interval 1000 \
        --eval-interval 100 \
        --save "./checkpoints" \
        --split 1 \
        --eval-iters 10 \
        --eval-batch-size 8 \
        --zero-stage 1 \
-       --lr 0.00005 \
+       --lr 0.00001 \
        --batch-size 4 \
        --skip-init \
        --fp16 \
