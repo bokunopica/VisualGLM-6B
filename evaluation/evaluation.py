@@ -3,13 +3,8 @@ import jieba
 from nltk.translate.bleu_score import sentence_bleu
 from nltk.translate.meteor_score import meteor_score as meteor
 import torch
-import pandas as pd
-import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from transformers import BertTokenizer
-from torch.optim import Adam
-from tqdm import tqdm
-import random
 from torch import nn
 from transformers import BertModel
 

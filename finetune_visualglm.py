@@ -171,7 +171,7 @@ def get_batch(data_iterator, args, timers):
 from torch.nn import CrossEntropyLoss
 
 
-def forward_step(data_iterator, model, args, timers):
+def  forward_step(data_iterator, model, args, timers):
     """Forward step."""
 
     # Get the batch.

@@ -46,7 +46,7 @@ def forward_step(data_iterator, model, args, timers):
     timers("batch generator").start()
     tokens, labels, image, pre_image = get_batch(data_iterator, args, timers)
     timers("batch generator").stop()
-    
+
     # TODO get classification loss
     # classification_loss_fct = CrossEntropyLoss()
     logits = model(input_ids=tokens, image=image, pre_image=pre_image)[0]
@@ -64,6 +64,7 @@ def forward_step(data_iterator, model, args, timers):
     loss = loss.to(dtype)
     return loss, {"loss": loss}
 
+
 def singleton(cls):
     instances = {}
 
@@ -73,6 +74,7 @@ def singleton(cls):
         return instances[cls]
 
     return _singleton
+
 
 @singleton
 class FewShotDataset(Dataset):
@@ -124,8 +126,9 @@ class FewShotDataset(Dataset):
             "pre_image": self.pre_image,
         }
 
+
 @singleton
-class XrayDataset(Dataset):    
+class XrayDataset(Dataset):
     def __init__(self, path, processor, tokenizer, args):
         max_seq_length = args.max_source_length + args.max_target_length
         with open(path, "r", encoding="utf-8") as f:
@@ -179,8 +182,9 @@ class XrayDataset(Dataset):
             "pre_image": self.pre_image,
         }
 
+
 @singleton
-class XrayDataset(Dataset):    
+class XrayDataset(Dataset):
     def __init__(self, path, processor, tokenizer, args):
         max_seq_length = args.max_source_length + args.max_target_length
         with open(path, "r", encoding="utf-8") as f:
@@ -199,17 +203,18 @@ class XrayDataset(Dataset):
             input0 = tokenizer.encode("<img>", add_special_tokens=False)
             input1 = [tokenizer.pad_token_id] * args.image_length
             # classification tag
-            is_covid = item['is_covid']
+            is_covid = item["is_covid"]
             if is_covid:
                 disease_prompt = "该患者患有新冠肺炎。"
             else:
                 disease_prompt = "该患者未患新冠肺炎。"
             input2 = tokenizer.encode(
-                "</img>"+ disease_prompt +"问：" + item["prompt"] + ""+ "\n答：", add_special_tokens=False
+                "</img>" + disease_prompt + "问：" + item["prompt"] + "" + "\n答：",
+                add_special_tokens=False,
             )
             a_ids = sum([input0, input1, input2], [])
             b_ids = tokenizer.encode(text=item["label"], add_special_tokens=False)
-            
+
             if len(a_ids) > args.max_source_length - 1:
                 a_ids = a_ids[: args.max_source_length - 1]
             if len(b_ids) > args.max_target_length - 2:
@@ -245,7 +250,7 @@ class XrayDataset(Dataset):
 
 
 @singleton
-class MimicXrayDataset(Dataset):    
+class MimicXrayDataset(Dataset):
     def __init__(self, path, processor, tokenizer, args):
         max_seq_length = args.max_source_length + args.max_target_length
         with open(path, "r", encoding="utf-8") as f:
@@ -303,23 +308,24 @@ class MimicXrayDataset(Dataset):
 def create_dataset_function(path, args, tokenizer=None):
     # tokenizer = get_tokenizer(args)
     if tokenizer is None:
-        tokenizer = AutoTokenizer.from_pretrained("/home/qianq/model/chatglm-6b", trust_remote_code=True)
+        tokenizer = AutoTokenizer.from_pretrained(
+            "/home/qianq/model/chatglm-6b", trust_remote_code=True
+        )
     image_processor = BlipImageEvalProcessor(224)
     dataset = XrayDataset(path, image_processor, tokenizer, args)
     # dataset = MimicXrayDataset(path, image_processor, tokenizer, args)
     return dataset
 
 
-
 def train_custom(
-    args, 
-    train_dataset, 
-    eval_dataset, 
+    args,
+    train_dataset,
+    eval_dataset,
     collate_fn,
     model_cls=None,
     forward_step_function=None,
 ):
-    print('-------train_custom-------')
+    print("-------train_custom-------")
     """
     dataset getitem
     {
@@ -338,15 +344,15 @@ def train_custom(
     for _ in train_dataloader:
         print(type(_))
         print(list(_.keys()))
-        print(len(_['image'])) # batch size
-        print(_['is_covid'])
-        print(len(_['is_covid']))
-        tokens = _['input_ids']
-        image = _['image']
-        pre_image=_['pre_image']
+        print(len(_["image"]))  # batch size
+        print(_["is_covid"])
+        print(len(_["is_covid"]))
+        tokens = _["input_ids"]
+        image = _["image"]
+        pre_image = _["pre_image"]
         model(input_ids=tokens, image=image, pre_image=pre_image)[0]
         break
-    print('-------train_custom-------')
+    print("-------train_custom-------")
 
 
 def main():
@@ -361,11 +367,208 @@ def main():
     args = get_args(args_list)
     args = argparse.Namespace(**vars(args), **vars(known))
     args.device = "cpu"
-    args = argparse.Namespace(use_classification_info=True, model_class='VisualGLMModel', tokenizer_type='THUDM/chatglm-6b', num_layers=28, hidden_size=4096, num_attention_heads=32, vocab_size=130528, layernorm_order='post', model_parallel_size=1, max_sequence_length=2048, image_length=32, eva_args={'num_layers': 39, 'hidden_size': 1408, 'num_attention_heads': 16, 'vocab_size': 1, 'layernorm_order': 'pre', 'model_parallel_size': 1, 'max_sequence_length': 257, 'inner_hidden_size': 6144, 'use_final_layernorm': False, 'layernorm_epsilon': 1e-06, 'image_size': [224, 224], 'pre_len': 1, 'post_len': 0, 'in_channels': 3, 'num_classes': 0, 'patch_size': 14}, qformer_args={'num_layers': 12, 'hidden_size': 768, 'num_attention_heads': 12, 'vocab_size': 32, 'layernorm_order': 'post', 'model_parallel_size': 1, 'max_sequence_length': 0, 'is_decoder': [True, False, True, False, True, False, True, False, True, False, True, False], 'cross_attn_hidden_size': 1408, 'layernorm_epsilon': 1e-12}, bos_token_id=130004, mask_token_id=130000, gmask_token_id=130001, pad_token_id=3, image_size=[224, 224], pre_len=1, post_len=0, in_channels=3, patch_size=14, inner_hidden_size=None, hidden_size_per_attention_head=None, skip_init=True, use_gpu_initialization=False, num_multi_query_heads=0, layernorm_epsilon=1e-05, hidden_dropout=0.1, attention_dropout=0.1, drop_path=0.0, make_vocab_size_divisible_by=128, experiment_name='finetune-visualglm-6b-eva', train_iters=3000, batch_size=4, lr=0.0001, mode='finetune', seed=1234, zero_stage=1, checkpoint_activations=True, checkpoint_num_layers=1, checkpoint_skip_layers=0, fp16=True, bf16=False, gradient_accumulation_steps=1, epochs=None, log_interval=50, summary_dir='', save_args=False, lr_decay_iters=None, lr_decay_style='cosine', lr_decay_ratio=0.1, warmup=0.02, weight_decay=0.01, save='./checkpoints', load=None, save_interval=1000, no_save_rng=False, no_load_rng=False, resume_dataloader=True, distributed_backend='nccl', local_rank=0, exit_interval=None, eval_batch_size=8, eval_iters=10, eval_interval=10, strict_eval=False, train_data=['/home/qianq/data/COV-CTR/train.json'], train_data_weights=None, iterable_dataset=False, valid_data=['/home/qianq/data/COV-CTR/eval.json'], test_data=None, split='1', num_workers=1, block_size=10000, prefetch_factor=4, temperature=1.0, top_p=0.0, top_k=0, num_beams=1, length_penalty=0.0, no_repeat_ngram_size=0, min_tgt_length=0, out_seq_length=256, input_source='interactive', output_path='./samples', with_id=False, max_inference_batch_size=12, device='cpu', deepspeed=True, deepspeed_config={'train_micro_batch_size_per_gpu': 4, 'gradient_accumulation_steps': 1, 'gradient_clipping': 0.1, 'zero_optimization': {'stage': 1, 'cpu_offload': False, 'contiguous_gradients': False, 'overlap_comm': True, 'reduce_scatter': True, 'reduce_bucket_size': 40000000.0, 'allgather_bucket_size': 100000000.0, 'load_from_fp32_weights': False}, 'zero_allow_untested_optimizer': True, 'fp16': {'enabled': True, 'loss_scale': 0, 'loss_scale_window': 400, 'hysteresis': 2, 'min_loss_scale': 1}, 'bf16': {'enabled': False}, 'optimizer': {'type': 'Adam', 'params': {'lr': 0.0001, 'betas': [0.9, 0.95], 'eps': 1e-08, 'weight_decay': 0.01}}, 'activation_checkpointing': {'partition_activations': False, 'contiguous_memory_optimization': False}, 'wall_clock_breakdown': False}, deepscale=False, deepscale_config=None, deepspeed_mpi=False, cuda=True, rank=0, world_size=1, deepspeed_activation_checkpointing=True, master_ip='127.0.0.1', master_port='16666', max_source_length=64, max_target_length=256, ignore_pad_token_for_loss=True, source_prefix='', pre_seq_len=8, lora_rank=10, use_ptuning=False, use_lora=False, use_qlora=False, layer_range=None, use_adapter=False, adapter_hidden=128, adapter_num_layers=28, use_freeze=False, unfreeze_layers='', train_qformer=True, train_vit_transformer='')
-
+    args = argparse.Namespace(
+        use_classification_info=True,
+        model_class="VisualGLMModel",
+        tokenizer_type="THUDM/chatglm-6b",
+        num_layers=28,
+        hidden_size=4096,
+        num_attention_heads=32,
+        vocab_size=130528,
+        layernorm_order="post",
+        model_parallel_size=1,
+        max_sequence_length=2048,
+        image_length=32,
+        eva_args={
+            "num_layers": 39,
+            "hidden_size": 1408,
+            "num_attention_heads": 16,
+            "vocab_size": 1,
+            "layernorm_order": "pre",
+            "model_parallel_size": 1,
+            "max_sequence_length": 257,
+            "inner_hidden_size": 6144,
+            "use_final_layernorm": False,
+            "layernorm_epsilon": 1e-06,
+            "image_size": [224, 224],
+            "pre_len": 1,
+            "post_len": 0,
+            "in_channels": 3,
+            "num_classes": 0,
+            "patch_size": 14,
+        },
+        qformer_args={
+            "num_layers": 12,
+            "hidden_size": 768,
+            "num_attention_heads": 12,
+            "vocab_size": 32,
+            "layernorm_order": "post",
+            "model_parallel_size": 1,
+            "max_sequence_length": 0,
+            "is_decoder": [
+                True,
+                False,
+                True,
+                False,
+                True,
+                False,
+                True,
+                False,
+                True,
+                False,
+                True,
+                False,
+            ],
+            "cross_attn_hidden_size": 1408,
+            "layernorm_epsilon": 1e-12,
+        },
+        bos_token_id=130004,
+        mask_token_id=130000,
+        gmask_token_id=130001,
+        pad_token_id=3,
+        image_size=[224, 224],
+        pre_len=1,
+        post_len=0,
+        in_channels=3,
+        patch_size=14,
+        inner_hidden_size=None,
+        hidden_size_per_attention_head=None,
+        skip_init=True,
+        use_gpu_initialization=False,
+        num_multi_query_heads=0,
+        layernorm_epsilon=1e-05,
+        hidden_dropout=0.1,
+        attention_dropout=0.1,
+        drop_path=0.0,
+        make_vocab_size_divisible_by=128,
+        experiment_name="finetune-visualglm-6b-eva",
+        train_iters=3000,
+        batch_size=4,
+        lr=0.0001,
+        mode="finetune",
+        seed=1234,
+        zero_stage=1,
+        checkpoint_activations=True,
+        checkpoint_num_layers=1,
+        checkpoint_skip_layers=0,
+        fp16=True,
+        bf16=False,
+        gradient_accumulation_steps=1,
+        epochs=None,
+        log_interval=50,
+        summary_dir="",
+        save_args=False,
+        lr_decay_iters=None,
+        lr_decay_style="cosine",
+        lr_decay_ratio=0.1,
+        warmup=0.02,
+        weight_decay=0.01,
+        save="./checkpoints",
+        load=None,
+        save_interval=1000,
+        no_save_rng=False,
+        no_load_rng=False,
+        resume_dataloader=True,
+        distributed_backend="nccl",
+        local_rank=0,
+        exit_interval=None,
+        eval_batch_size=8,
+        eval_iters=10,
+        eval_interval=10,
+        strict_eval=False,
+        train_data=["/home/qianq/data/COV-CTR/train.json"],
+        train_data_weights=None,
+        iterable_dataset=False,
+        valid_data=["/home/qianq/data/COV-CTR/eval.json"],
+        test_data=None,
+        split="1",
+        num_workers=1,
+        block_size=10000,
+        prefetch_factor=4,
+        temperature=1.0,
+        top_p=0.0,
+        top_k=0,
+        num_beams=1,
+        length_penalty=0.0,
+        no_repeat_ngram_size=0,
+        min_tgt_length=0,
+        out_seq_length=256,
+        input_source="interactive",
+        output_path="./samples",
+        with_id=False,
+        max_inference_batch_size=12,
+        device="cpu",
+        deepspeed=True,
+        deepspeed_config={
+            "train_micro_batch_size_per_gpu": 4,
+            "gradient_accumulation_steps": 1,
+            "gradient_clipping": 0.1,
+            "zero_optimization": {
+                "stage": 1,
+                "cpu_offload": False,
+                "contiguous_gradients": False,
+                "overlap_comm": True,
+                "reduce_scatter": True,
+                "reduce_bucket_size": 40000000.0,
+                "allgather_bucket_size": 100000000.0,
+                "load_from_fp32_weights": False,
+            },
+            "zero_allow_untested_optimizer": True,
+            "fp16": {
+                "enabled": True,
+                "loss_scale": 0,
+                "loss_scale_window": 400,
+                "hysteresis": 2,
+                "min_loss_scale": 1,
+            },
+            "bf16": {"enabled": False},
+            "optimizer": {
+                "type": "Adam",
+                "params": {
+                    "lr": 0.0001,
+                    "betas": [0.9, 0.95],
+                    "eps": 1e-08,
+                    "weight_decay": 0.01,
+                },
+            },
+            "activation_checkpointing": {
+                "partition_activations": False,
+                "contiguous_memory_optimization": False,
+            },
+            "wall_clock_breakdown": False,
+        },
+        deepscale=False,
+        deepscale_config=None,
+        deepspeed_mpi=False,
+        cuda=True,
+        rank=0,
+        world_size=1,
+        deepspeed_activation_checkpointing=True,
+        master_ip="127.0.0.1",
+        master_port="16666",
+        max_source_length=64,
+        max_target_length=256,
+        ignore_pad_token_for_loss=True,
+        source_prefix="",
+        pre_seq_len=8,
+        lora_rank=10,
+        use_ptuning=False,
+        use_lora=False,
+        use_qlora=False,
+        layer_range=None,
+        use_adapter=False,
+        adapter_hidden=128,
+        adapter_num_layers=28,
+        use_freeze=False,
+        unfreeze_layers="",
+        train_qformer=True,
+        train_vit_transformer="",
+    )
 
     # tokenizer
-    tokenizer = AutoTokenizer.from_pretrained("/home/qianq/model/chatglm-6b", trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        "/home/qianq/model/chatglm-6b", trust_remote_code=True
+    )
 
     # datasets
     # train_dataset=create_dataset_function(args.train_data[0], args, tokenizer)
@@ -408,7 +611,6 @@ def main():
     # if torch.cuda.is_available():
     #     model = model.to("cuda")
 
-    
     # tokenizer = get_tokenizer(args)
     label_pad_token_id = (
         -100 if args.ignore_pad_token_for_loss else tokenizer.pad_token_id
@@ -459,7 +661,9 @@ def test():
     # args.device = "cpu"
 
     # tokenizer
-    tokenizer = AutoTokenizer.from_pretrained("/home/qianq/model/chatglm-6b", trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        "/home/qianq/model/chatglm-6b", trust_remote_code=True
+    )
 
     # datasets
     train_dataset = create_dataset_function(args.train_data[0], args, tokenizer)
@@ -477,7 +681,7 @@ def test():
             "is_covid": example["is_covid"],
         }
         return ret
-    
+
     model_type = "visualglm-6b"
     model, args = FineTuneVisualGLMModel.from_pretrained(
         model_type, args, build_only=True
