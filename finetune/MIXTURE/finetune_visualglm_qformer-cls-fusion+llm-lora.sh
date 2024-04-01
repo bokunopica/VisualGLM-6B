@@ -6,15 +6,15 @@ MP_SIZE=1
 script_path=$(realpath $0)
 script_dir=$(dirname $script_path)
 main_dir=$(dirname $script_dir)
-MODEL_TYPE="visualglm-6b"
+MODEL_TYPE="visualglm-6b-eva"
 MODEL_ARGS="--max_source_length 64 \
     --max_target_length 256 \
     --lora_rank 10 \
     --layer_range 0 14"
 
-OPTIONS_DEVICE="CUDA_VISIBLE_DEVICES=1,3"
+OPTIONS_DEVICE="CUDA_VISIBLE_DEVICES=2"
 # OPTIONS_SAT="SAT_HOME=$1" #"SAT_HOME=/raid/dm/sat_models"
-OPTIONS_NCCL="NCCL_DEBUG=info NCCL_IB_DISABLE=0 NCCL_NET_GDR_LEVEL=2 NCCL_P2P_DISABLE=1"
+# OPTIONS_NCCL="NCCL_DEBUG=info NCCL_IB_DISABLE=0 NCCL_NET_GDR_LEVEL=2 NCCL_P2P_DISABLE=1"
 HOST_FILE_PATH="hostfile"
 HOST_FILE_PATH="hostfile_single"
 
@@ -32,7 +32,7 @@ gpt_options=" \
        --experiment-name finetune-$MODEL_TYPE \
        --model-parallel-size ${MP_SIZE} \
        --mode finetune \
-       --train-iters 3000 \
+       --train-iters 2000 \
        --resume-dataloader \
        $MODEL_ARGS \
        --train-data ${train_data} \
@@ -41,8 +41,8 @@ gpt_options=" \
        --lr-decay-style cosine \
        --warmup .02 \
        --checkpoint-activations \
-       --save-interval 1000 \
-       --eval-interval 10 \
+       --save-interval 2000 \
+       --eval-interval 100 \
        --save "./checkpoints" \
        --split 1 \
        --eval-iters 10 \
@@ -52,14 +52,14 @@ gpt_options=" \
        --batch-size 4 \
        --skip-init \
        --fp16 \
-       --use_freeze \
-       --unfreeze_layers 0,14 \
-       --use_trained_eva
+       --cls_fusion \
+       --freeze_cls_fusion \
+       --use_lora
 "
 
               
 
-run_cmd="${OPTIONS_DEVICE} ${OPTIONS_NCCL} ${OPTIONS_SAT} deepspeed --master_port 16666 --hostfile ${HOST_FILE_PATH} finetune_visualglm.py ${gpt_options}"
+run_cmd="${OPTIONS_DEVICE} ${OPTIONS_NCCL} ${OPTIONS_SAT} deepspeed --master_port 16667 --hostfile ${HOST_FILE_PATH} finetune_visualglm_mixture.py ${gpt_options}"
 echo ${run_cmd}
 eval ${run_cmd}
 

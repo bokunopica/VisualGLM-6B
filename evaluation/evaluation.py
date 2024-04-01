@@ -1,3 +1,4 @@
+import os
 import json
 import jieba
 from nltk.translate.bleu_score import sentence_bleu
@@ -188,9 +189,10 @@ def calc_clinical_efficacy(reports, bert_ckpt_path):
 
 
 if __name__ == "__main__":
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     seed = 1997
     base_path = "/home/qianq/mycodes/VisualGLM-6B/reports/COV-CTR"
-    file_name = "finetune-visualglm-6b-qformer-cls-fusion-6000.jsonl"
+    file_name = "finetune-visualglm-6b-qformer-cls-fusion+llm-lora-6000.jsonl"
     bert_ckpt_path = '/home/qianq/mycodes/VisualGLM-6B/checkpoints/bert-clf/last.pt'
     reports_path = f"{base_path}-seed{seed}/{file_name}"
     reports = read_reports(reports_path)

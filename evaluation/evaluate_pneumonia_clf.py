@@ -183,7 +183,7 @@ if __name__ == "__main__":
         quant=None,
     )
     args.device = "cpu"
-    ckpt_path = 'checkpoints/finetune-classifier-03-06-10-57'
+    ckpt_path = 'checkpoints/clf'
     eva_args={
         "num_layers": 39,
         "hidden_size": 1408,
