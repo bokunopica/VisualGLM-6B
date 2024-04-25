@@ -1,5 +1,6 @@
 import os
 import json
+import pandas as pd
 import jieba
 from nltk.translate.bleu_score import sentence_bleu
 from nltk.translate.meteor_score import meteor_score as meteor
@@ -73,11 +74,43 @@ class AverageMeter:
         self.avg = self.sum / self.count
 
 
-def read_reports(path):
+def read_reports_visualglm(path):
     with open(path) as f:
         lines = f.readlines()
     return [json.loads(line) for line in lines]
 
+
+def read_reports_show_and_tell(path):
+    """show and tell model reports"""
+    # test info
+    test_json_path = "/home/qianq/data/COV-CTR/eval.json"
+    with open(test_json_path) as f:
+        data_list = json.loads(f.read()) # csv_lines
+
+    pd_reports = pd.read_csv(path)
+    query_dict = {}
+    
+    for _, row in pd_reports.iterrows():
+        query_dict[row['image_files']] = row['caption']
+
+    for i in range(len(data_list)):
+        gen = query_dict.get(data_list[i]['img'], None)
+        if gen is None:
+            raise Exception('no gen text')
+        data_list[i]['generated'] = query_dict.get(data_list[i]['img'], None)
+    return data_list
+
+
+def read_reports(path, model_type):
+    if model_type == "visualglm":
+        read_func = read_reports_visualglm
+    elif model_type == "show_and_tell":
+        read_func = read_reports_show_and_tell
+    else:
+        raise Exception("model_type unknown")
+    return read_func(path)
+
+        
 
 def bleu_score(raw_splits, generate_splits):
     """
@@ -191,10 +224,21 @@ def calc_clinical_efficacy(reports, bert_ckpt_path):
 if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     seed = 1997
-    base_path = "/home/qianq/mycodes/VisualGLM-6B/reports/COV-CTR"
-    file_name = "finetune-visualglm-6b-qformer-cls-fusion+llm-lora-6000.jsonl"
+    base_path = "/home/qianq/mycodes/VisualGLM-6B/reports"
+    
     bert_ckpt_path = '/home/qianq/mycodes/VisualGLM-6B/checkpoints/bert-clf/last.pt'
-    reports_path = f"{base_path}-seed{seed}/{file_name}"
-    reports = read_reports(reports_path)
+    # model_type = "visualglm"
+    model_type = "show_and_tell"
+    if model_type == "visualglm":
+        file_name = "finetune-visualglm-6b-qformer-cls-fusion+llm-lora-6000.jsonl"
+        reports_path = f"{base_path}/COV-CTR-seed{seed}/{file_name}"
+
+    else:
+        # show_and_tell
+        file_name = "results_190.csv"
+        reports_path = f"{base_path}/show_and_tell/{file_name}"
+    reports = read_reports(reports_path, model_type=model_type)
+    
+
     calc_clinical_efficacy(reports=reports, bert_ckpt_path=bert_ckpt_path)
     calc_nlg_metrics(reports)
