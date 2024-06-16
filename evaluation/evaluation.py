@@ -106,6 +106,8 @@ def read_reports(path, model_type):
         read_func = read_reports_visualglm
     elif model_type == "show_and_tell":
         read_func = read_reports_show_and_tell
+    elif model_type == "show_attend_and_tell":
+        read_func = read_reports_visualglm
     else:
         raise Exception("model_type unknown")
     return read_func(path)
@@ -233,10 +235,14 @@ if __name__ == "__main__":
         file_name = "finetune-visualglm-6b-qformer-cls-fusion+llm-lora-6000.jsonl"
         reports_path = f"{base_path}/COV-CTR-seed{seed}/{file_name}"
 
-    else:
+    elif model_type =="show_and_tell":
         # show_and_tell
         file_name = "results_190.csv"
         reports_path = f"{base_path}/show_and_tell/{file_name}"
+    else:
+        # show_attend_and_tell
+        file_name = "show_attend_tell.jsonl"
+        reports_path = f"{base_path}/show_attend_and_tell/{file_name}"
     reports = read_reports(reports_path, model_type=model_type)
     
 

@@ -51,7 +51,8 @@ gpt_options=" \
        --batch-size 4 \
        --skip-init \
        --fp16 \
-       --train_qformer
+       --train_qformer \
+       --no_prompt
 "
 
               

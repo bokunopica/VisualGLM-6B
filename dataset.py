@@ -94,6 +94,11 @@ class CovCTRDataset(Dataset):
             #         disease_prompt = "该位受检者患有肺炎。"
             #     else:
             #         disease_prompt = "该位受检者未患有肺炎。"
+
+            ## no_prompt
+            if "no_prompt" in args:
+                print("no_prompt!")
+                item["prompt"] = "请描述一下这张图像"
             input2 = tokenizer.encode(
                 "</img>问：" + item["prompt"] + "\n答：", add_special_tokens=False
             )

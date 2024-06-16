@@ -64,12 +64,20 @@ class FusionModel(nn.Module):
         self.proj = nn.Linear(self.emb_dim, self.proj_output_dim)
 
     def forward(self, condition, image_emb):
+        print('---------------------')
         cond_emb = self.cond_embedding_model(condition)
+        print('cond_emb', cond_emb.shape) # batch_size,256
         img_emb_shape = image_emb.shape
+        print('image_emb', image_emb.shape) # batch_size, 32, 768
         cond_emb =cond_emb.reshape((img_emb_shape[0], img_emb_shape[1], -1))
-        emb = torch.concat([cond_emb, image_emb], dim=2)
+        print('cond_emb', cond_emb.shape) # batch_size, 32, 8
+        emb = torch.concat([cond_emb, image_emb], dim=2) 
+        print('emb', emb.shape) # batch_size, 32, 776
         tf_emb = self.transformer_encoder(emb)
+        print('tf_emb', tf_emb.shape) # batch_size, 32, 776
         out = self.proj(tf_emb)
+        print('out', out.shape) # batch_size, 32, 768
+        print('---------------------')
         return out
 
 class BLIP2(torch.nn.Module):
