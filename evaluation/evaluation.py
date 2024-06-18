@@ -229,10 +229,10 @@ if __name__ == "__main__":
     base_path = "/home/qianq/mycodes/VisualGLM-6B/reports"
     
     bert_ckpt_path = '/home/qianq/mycodes/VisualGLM-6B/checkpoints/bert-clf/last.pt'
-    # model_type = "visualglm"
-    model_type = "show_and_tell"
+    model_type = "visualglm"
+    # model_type = "show_and_tell"
     if model_type == "visualglm":
-        file_name = "finetune-visualglm-6b-qformer-cls-fusion+llm-lora-6000.jsonl"
+        file_name = "finetune-visualglm-6b-qformer-no-prompt-6000.jsonl"
         reports_path = f"{base_path}/COV-CTR-seed{seed}/{file_name}"
 
     elif model_type =="show_and_tell":

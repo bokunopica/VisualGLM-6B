@@ -197,7 +197,8 @@ class FineTuneVisualGLMModel(VisualGLMModel):
         group.add_argument("--train_qformer", action="store_true")
         group.add_argument("--train_vit_transformer", type=str, default="")
         group.add_argument("--cls_fusion", action="store_true") # 是否使用cls_fusion模块 默认不冻结
-        group.add_argument("--freeze_cls_fusion", action="store_true") # 是否冻结cls_fusion模块
+        group.add_argument("--freeze_cls_fusion", action="store_true") # 是否冻结nvidiacls_fusion模块
+        group.add_argument("--no_prompt", action="store_true") # 是否不用prompt
         # group.add_argument("--use_classification_info", action="store_true")
         
         return super().add_model_specific_args(parser)

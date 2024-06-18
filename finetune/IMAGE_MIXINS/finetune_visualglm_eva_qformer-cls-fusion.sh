@@ -51,7 +51,8 @@ gpt_options=" \
        --skip-init \
        --fp16 \
        --train_qformer \
-       --cls_fusion
+       --cls_fusion \
+       --no_prompt
 "
 
               

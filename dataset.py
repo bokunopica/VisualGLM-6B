@@ -97,7 +97,7 @@ class CovCTRDataset(Dataset):
 
             ## no_prompt
             if "no_prompt" in args:
-                print("no_prompt!")
+                # print("no_prompt!")
                 item["prompt"] = "请描述一下这张图像"
             input2 = tokenizer.encode(
                 "</img>问：" + item["prompt"] + "\n答：", add_special_tokens=False

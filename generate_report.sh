@@ -1,4 +1,4 @@
-CKPT_NAME='finetune-visualglm-6b-qformer-cls-fusion+llm-lora-6000'
+CKPT_NAME='finetune-visualglm-6b-qformer-no-prompt-6000'
 PREFIX='COV-CTR'
 SEED=1997
 CKPT_PATH="checkpoints/$PREFIX/$CKPT_NAME"
