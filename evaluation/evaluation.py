@@ -180,6 +180,7 @@ def calc_nlg_metrics(reports):
     print('%.2f' % (bleu3_metric.avg*100), '%')
     print('%.2f' % (bleu4_metric.avg*100), '%')
     print('%.2f' % (meteor_metric.avg*100), '%')
+    return [bleu1_metric.avg, bleu2_metric.avg, bleu3_metric.avg, bleu4_metric.avg, meteor_metric.avg]
 
 
 def calc_clinical_efficacy(reports, bert_ckpt_path):
@@ -210,7 +211,9 @@ def calc_clinical_efficacy(reports, bert_ckpt_path):
             output = model(input_ids, masks)
             acc = (output.argmax(dim=1) == labels).sum().item()
             total_acc_val += acc
-        print(f'Covid Classification Accuracy: {100 * total_acc_val / len(eval_dataset): .2f}%')
+        accuracy = total_acc_val / len(eval_dataset)
+        print(f'Covid Classification Accuracy: {100*accuracy: .2f}%')
+        return accuracy
 
     # for report in reports:
     #     # raw = report['label']
@@ -230,21 +233,65 @@ if __name__ == "__main__":
     
     bert_ckpt_path = '/home/qianq/mycodes/VisualGLM-6B/checkpoints/bert-clf/last.pt'
     model_type = "visualglm"
+    is_bootstrap = True
     # model_type = "show_and_tell"
-    if model_type == "visualglm":
-        file_name = "finetune-visualglm-6b-qformer-no-prompt-6000.jsonl"
-        reports_path = f"{base_path}/COV-CTR-seed{seed}/{file_name}"
+    # model_type = "show_attend_and_tell"
+    if is_bootstrap:
+        if model_type == "visualglm":
+            dir_name = "finetune-visualglm-6b-qformer-6000.jsonl"
+            reports_dir = f"{base_path}/COV-CTR-seed{seed}/{dir_name}"
 
-    elif model_type =="show_and_tell":
-        # show_and_tell
-        file_name = "results_190.csv"
-        reports_path = f"{base_path}/show_and_tell/{file_name}"
+        # elif model_type =="show_and_tell":
+        #     # show_and_tell
+        #     file_name = "results_190.csv"
+        #     reports_path = f"{base_path}/show_and_tell/{file_name}"
+        # else:
+        #     # show_attend_and_tell
+        #     file_name = "show_attend_tell.jsonl"
+        #     reports_path = f"{base_path}/show_attend_and_tell/{file_name}"
+        n = 10
+        b1_total = 0
+        b2_total = 0
+        b3_total = 0
+        b4_total = 0
+        meteor_total = 0
+        ce_total = 0
+        for i in range(n):
+            reports_path = f"{reports_dir}/{i+1}.jsonl"
+            reports = read_reports(reports_path, model_type=model_type)
+            ce_total += calc_clinical_efficacy(reports=reports, bert_ckpt_path=bert_ckpt_path)
+            nlgm_list = calc_nlg_metrics(reports)
+            b1_total += nlgm_list[0]
+            b2_total += nlgm_list[1]
+            b3_total += nlgm_list[2]
+            b4_total += nlgm_list[3]
+            meteor_total += nlgm_list[4]
+        print("---------nlg_metrics----------")
+        print('%.2f' % (b1_total/n*100), '%')
+        print('%.2f' % (b2_total/n*100), '%')
+        print('%.2f' % (b3_total/n*100), '%')
+        print('%.2f' % (b4_total/n*100), '%')
+        print('%.2f' % (meteor_total/n*100), '%')
+        print(f'Covid Classification Accuracy: {ce_total/n*100: .2f}%')
+        
+        
+            
+            
     else:
-        # show_attend_and_tell
-        file_name = "show_attend_tell.jsonl"
-        reports_path = f"{base_path}/show_attend_and_tell/{file_name}"
-    reports = read_reports(reports_path, model_type=model_type)
-    
+        if model_type == "visualglm":
+            file_name = "finetune-visualglm-6b-qformer-no-prompt-6000.jsonl"
+            reports_path = f"{base_path}/COV-CTR-seed{seed}/{file_name}"
 
-    calc_clinical_efficacy(reports=reports, bert_ckpt_path=bert_ckpt_path)
-    calc_nlg_metrics(reports)
+        elif model_type =="show_and_tell":
+            # show_and_tell
+            file_name = "results_190.csv"
+            reports_path = f"{base_path}/show_and_tell/{file_name}"
+        else:
+            # show_attend_and_tell
+            file_name = "show_attend_tell.jsonl"
+            reports_path = f"{base_path}/show_attend_and_tell/{file_name}"
+        reports = read_reports(reports_path, model_type=model_type)
+        
+
+        calc_clinical_efficacy(reports=reports, bert_ckpt_path=bert_ckpt_path)
+        calc_nlg_metrics(reports)
