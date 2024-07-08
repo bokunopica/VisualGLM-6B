@@ -4,6 +4,7 @@ import random
 from PIL import Image
 import os
 import json
+import pickle
 from model import (
     is_chinese,
     get_infer_setting,
@@ -103,12 +104,53 @@ def main(args):
     with open(file_path) as f:
         data = json.load(f)
 
-    # 外部文件夹处理
-    save_dir = "/".join(args.report_save_path.split('/')[:-1])
+    # TODO Bootstrap 验证方法
+    if args.bootstrap:
+        # 外部文件夹处理
+        save_dir = check_save_dir(args.report_save_path, is_bootstrap=True)
+        len_single_eval = int(len(data)*0.8)
+
+        with open("/home/qianq/mycodes/VisualGLM-6B/bootstrap_index.list", 'rb') as f:
+            shuffle_lists = pickle.load(f)
+        
+        for idx in range(10):
+            f = open(f"{save_dir}/{idx+1}.jsonl", 'w', encoding='utf-8')
+            shuffle_list = shuffle_lists[idx]
+            shuffle_data = []
+            # 验证集80%随机采样,采样10次
+            for item in shuffle_list[:len_single_eval]:
+                shuffle_data.append(data[item])
+            save_path = f"{save_dir}/{idx+1}.jsonl"
+            generate_reports(base_dir, save_path, shuffle_data)
+            
+    else:
+        check_save_dir(args.report_save_path, is_bootstrap=False)
+        generate_reports(base_dir, args.report_save_path, data)
+
+
+def check_save_dir(save_path, is_bootstrap=False):
+    """
+    外部文件夹处理
+    is_bootstrap: 
+        true:
+            COV-CTR-seed1997-{model_name}
+        false:
+            COV-CTR-seed1997
+    
+    """
+    if is_bootstrap:
+        save_dir = save_path.replace('.jsonl', '')
+    else:
+        save_dir = "/".join(save_dir.split('/')[:-1])
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
+    return save_dir
 
-    f = open(args.report_save_path, 'w', encoding='utf-8')
+def generate_reports(base_dir, save_path, data):
+    """
+    批量生成报告并储存
+    """
+    f = open(save_path, 'w', encoding='utf-8')
     for i in trange(len(data)):
         single_data = data[i]
         image_path = f"{base_dir}/{single_data['img'].split('/')[-1]}"
@@ -121,7 +163,8 @@ def main(args):
         single_data['generated'] = generate_report
         f.write(json.dumps(single_data, ensure_ascii=False))
         f.write('\n')
-    
+    f.close()
+        
 
 if __name__ == "__main__":
     import argparse
@@ -134,5 +177,6 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--use_covid_tag", action="store_true")
     parser.add_argument("--vqa", action="store_true")
+    parser.add_argument("--bootstrap", action="store_true")
     args = parser.parse_args()
     main(args)
