@@ -58,7 +58,7 @@ class FusionModel(nn.Module):
             self.cond_emb_dim + self.image_emb_dim, 
             nhead, 
             self.emb_dim, 
-            activation='relu'
+            activation='relu',
         )
         self.proj_output_dim = proj_output_dim
         self.proj = nn.Linear(self.emb_dim, self.proj_output_dim)

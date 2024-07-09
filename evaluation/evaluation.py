@@ -1,5 +1,6 @@
 import os
 import json
+import pickle
 import pandas as pd
 import jieba
 from nltk.translate.bleu_score import sentence_bleu
@@ -183,20 +184,8 @@ def calc_nlg_metrics(reports):
     return [bleu1_metric.avg, bleu2_metric.avg, bleu3_metric.avg, bleu4_metric.avg, meteor_metric.avg]
 
 
-def calc_clinical_efficacy(reports, bert_ckpt_path):
-    bert_name = "bert-base-chinese"
-    model_path = f"/home/qianq/model/{bert_name}"
-    tokenizer = BertTokenizer.from_pretrained(model_path)
+def calc_clinical_efficacy(reports, model, tokenizer, device):
     batch_size = 32
-    # # 定义模型
-    model = BertClassifier(model_path)
-    model.load_state_dict(
-        torch.load(bert_ckpt_path)
-    )
-
-    device = "cuda"
-    model = model.to(device)
-
     # # 验证数据集
     eval_dataset = MyDataset(reports=reports, tokenizer=tokenizer)
     eval_loader = DataLoader(eval_dataset, batch_size=batch_size)
@@ -233,54 +222,90 @@ if __name__ == "__main__":
     
     bert_ckpt_path = '/home/qianq/mycodes/VisualGLM-6B/checkpoints/bert-clf/last.pt'
     model_type = "visualglm"
+    # is_bootstrap = True
     is_bootstrap = True
     # model_type = "show_and_tell"
     # model_type = "show_attend_and_tell"
+
+
+    ## bert classifier
+    bert_name = "bert-base-chinese"
+    model_path = f"/home/qianq/model/{bert_name}"
+    bert_tokenizer = BertTokenizer.from_pretrained(model_path)
+    # # 定义模型
+    bert_model = BertClassifier(model_path)
+    bert_model.load_state_dict(
+        torch.load(bert_ckpt_path)
+    )
+    device = "cuda"
+    bert_model = bert_model.to(device)
+
+
     if is_bootstrap:
         if model_type == "visualglm":
-            dir_name = "finetune-visualglm-6b-qformer-6000.jsonl"
-            reports_dir = f"{base_path}/COV-CTR-seed{seed}/{dir_name}"
-
-        # elif model_type =="show_and_tell":
-        #     # show_and_tell
-        #     file_name = "results_190.csv"
-        #     reports_path = f"{base_path}/show_and_tell/{file_name}"
-        # else:
-        #     # show_attend_and_tell
-        #     file_name = "show_attend_tell.jsonl"
-        #     reports_path = f"{base_path}/show_attend_and_tell/{file_name}"
-        n = 10
-        b1_total = 0
-        b2_total = 0
-        b3_total = 0
-        b4_total = 0
-        meteor_total = 0
-        ce_total = 0
-        for i in range(n):
-            reports_path = f"{reports_dir}/{i+1}.jsonl"
+            file_name = "finetune-visualglm-6b-qformer-6000.jsonl"
+            reports_path = f"{base_path}/COV-CTR-seed{seed}-final/{file_name}"
             reports = read_reports(reports_path, model_type=model_type)
-            ce_total += calc_clinical_efficacy(reports=reports, bert_ckpt_path=bert_ckpt_path)
-            nlgm_list = calc_nlg_metrics(reports)
-            b1_total += nlgm_list[0]
-            b2_total += nlgm_list[1]
-            b3_total += nlgm_list[2]
-            b4_total += nlgm_list[3]
-            meteor_total += nlgm_list[4]
-        print("---------nlg_metrics----------")
-        print('%.2f' % (b1_total/n*100), '%')
-        print('%.2f' % (b2_total/n*100), '%')
-        print('%.2f' % (b3_total/n*100), '%')
-        print('%.2f' % (b4_total/n*100), '%')
-        print('%.2f' % (meteor_total/n*100), '%')
-        print(f'Covid Classification Accuracy: {ce_total/n*100: .2f}%')
+
+            len_single_eval = int(len(reports)*0.8)
+
+            with open("/home/qianq/mycodes/VisualGLM-6B/bootstrap_index.list", 'rb') as f:
+                shuffle_lists = pickle.load(f)
+            
+            n = 10
+            b1_total = []
+            b2_total = []
+            b3_total = []
+            b4_total = []
+            meteor_total = []
+            ce_total = []
+
+            for idx in range(n):
+                shuffle_list = shuffle_lists[idx]
+                shuffle_data = []
+                # 验证集80%随机采样,采样10次
+                for item in shuffle_list[:len_single_eval]:
+                    shuffle_data.append(reports[item])
+                ce_total.append(
+                    calc_clinical_efficacy(
+                        reports=shuffle_data, 
+                        model=bert_model, 
+                        tokenizer=bert_tokenizer,
+                        device=device
+                    )
+                )
+                nlgm_list = calc_nlg_metrics(shuffle_data)
+                b1_total.append(nlgm_list[0])
+                b2_total.append(nlgm_list[1])
+                b3_total.append(nlgm_list[2])
+                b4_total.append(nlgm_list[3])
+                meteor_total.append(nlgm_list[4])
+
+
+            print("---------nlg_metrics----------")
+            print('%.2f' % (sum(b1_total)/n*100), '%')
+            print('%.2f' % (sum(b2_total)/n*100), '%')
+            print('%.2f' % (sum(b3_total)/n*100), '%')
+            print('%.2f' % (sum(b4_total)/n*100), '%')
+            print('%.2f' % (sum(meteor_total)/n*100), '%')
+            print("-------ce---------")
+            print(f'{sum(ce_total)/n*100: .2f}%')
+            print("---------nlg_metrics----------")
+            print(b1_total)
+            print(b2_total)
+            print(b3_total)
+            print(b4_total)
+            print(meteor_total)
+            print("-------ce---------")
+            print(ce_total)
         
         
             
             
     else:
         if model_type == "visualglm":
-            file_name = "finetune-visualglm-6b-qformer-no-prompt-6000.jsonl"
-            reports_path = f"{base_path}/COV-CTR-seed{seed}/{file_name}"
+            file_name = "finetune-visualglm-6b-qformer-cls-fusion-6000.jsonl"
+            reports_path = f"{base_path}/COV-CTR-seed{seed}-final/{file_name}"
 
         elif model_type =="show_and_tell":
             # show_and_tell
@@ -293,5 +318,5 @@ if __name__ == "__main__":
         reports = read_reports(reports_path, model_type=model_type)
         
 
-        calc_clinical_efficacy(reports=reports, bert_ckpt_path=bert_ckpt_path)
+        calc_clinical_efficacy(reports=reports, model=bert_model, tokenizer=bert_tokenizer, device=device)
         calc_nlg_metrics(reports)
