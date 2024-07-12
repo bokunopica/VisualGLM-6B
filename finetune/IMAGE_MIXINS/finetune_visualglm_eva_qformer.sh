@@ -31,7 +31,7 @@ gpt_options=" \
        --experiment-name finetune-$MODEL_TYPE \
        --model-parallel-size ${MP_SIZE} \
        --mode finetune \
-       --train-iters 6000 \
+       --train-iters 3000 \
        --resume-dataloader \
        $MODEL_ARGS \
        --train-data ${train_data} \

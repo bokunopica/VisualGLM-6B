@@ -49,6 +49,7 @@ def forward_step(data_iterator, model, args, timers):
     dtype = logits.dtype
     lm_logits = logits.to(torch.float32)
 
+    # TODO 这个矩阵运算在干嘛？
     # Shift so that tokens < n predict n
     shift_logits = lm_logits[..., :-1, :].contiguous()
     shift_labels = labels[..., 1:].contiguous()
